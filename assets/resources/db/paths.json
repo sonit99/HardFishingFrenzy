@@ -1,0 +1,36 @@
+{
+  "prefabs": {
+    "pages": {
+      "Customization": "prefabs/pages/Customization",
+      "GamePlay": "prefabs/pages/GamePlay",
+      "Home": "prefabs/pages/Home",
+      "Lobby": "prefabs/pages/Lobby",
+      "Mode": "prefabs/pages/Mode",
+      "OpponentSearch": "prefabs/pages/OpponentSearch",
+      "Ranking": "prefabs/pages/Ranking",
+      "Reward": "prefabs/pages/Reward",
+      "Settings": "prefabs/pages/Settings",
+      "Shop": "prefabs/pages/Shop"
+    },
+    "popups": {
+      "PlayerDetail": "prefabs/popups/PlayerDetail"
+    },
+    "items": {
+      "RankingItem": "prefabs/items/Ranking_Item"
+    }
+  },
+  "textures": {
+    "Items": "textures/items",
+    "Icons": "textures/icons",
+    "Characters": "textures/characters"
+  },
+  "sounds": {
+    "click": "sounds/click",
+    "win": "sounds/win",
+    "lose": "sounds/lose"
+  },
+  "music": {
+    "lobby": "music/lobby",
+    "battle": "music/battle"
+  }
+}

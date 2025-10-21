@@ -1,0 +1,62 @@
+{
+    "0": {
+        "name": "character_00_name",
+        "description": "character_00_desc",
+        "skills": "skill_00_name",
+        "avatar": "frank_avatar.png"
+    },
+    "1": {
+        "name": "character_01_name",
+        "description": "character_01_desc",
+        "skills": "skill_01_name",
+        "avatar": "kingrat_avatar.png"
+    },
+    "2": {
+        "name": "character_02_name",
+        "description": "character_02_desc",
+        "skills": "skill_02_name",
+        "avatar": "midas_avatar.png"
+    },
+    "3": {
+        "name": "character_03_name",
+        "description": "character_03_desc",
+        "skills": "skill_03_name",
+        "avatar": "bigboy_avatar.png"
+    },
+    "4": {
+        "name": "character_04_name",
+        "description": "character_04_desc",
+        "skills": "skill_04_name",
+        "avatar": "thunder_avatar.png"
+    },
+    "5": {
+        "name": "character_05_name",
+        "description": "character_05_desc",
+        "skills": "skill_05_name",
+        "avatar": "monkey_avatar.png"
+    },
+    "6": {
+        "name": "character_06_name",
+        "description": "character_06_desc",
+        "skills": "skill_06_name",
+        "avatar": "scientist_avatar.png"
+    },
+    "7": {
+        "name": "character_07_name",
+        "description": "character_07_desc",
+        "skills": "skill_07_name",
+        "avatar": "pirate_avatar.png"
+    },
+    "8": {
+        "name": "character_08_name",
+        "description": "character_08_desc",
+        "skills": "skill_08_name",
+        "avatar": "cowboy_avatar.png"
+    },
+    "9": {
+        "name": "character_09_name",
+        "description": "character_09_desc",
+        "skills": "skill_09_name",
+        "avatar": "clown_avatar.png"
+    }
+}

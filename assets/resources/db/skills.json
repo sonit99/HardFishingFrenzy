@@ -1,0 +1,92 @@
+{
+    "0": {
+        "characterId": 0,
+        "name": "skill_00_name",
+        "description": "skill_00_desc",
+        "cooldown": 8,
+        "itemCount": 0,
+        "itemId": [],
+        "icon": "powerreel_icon.png"
+    },
+    "1": {
+        "characterId": 1,
+        "name": "skill_01_name",
+        "description": "skill_01_desc",
+        "cooldown": 35,
+        "itemCount": 3,
+        "itemId": [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14],
+        "icon": "kingcall_icon.png"
+    },
+    "2": {
+        "characterId": 2,
+        "name": "skill_02_name",
+        "description": "skill_02_desc",
+        "cooldown": 0,
+        "itemCount": 5,
+        "itemId": [3,4,5],
+        "icon": "stonetogold_icon.png"
+    },
+    "3": {
+        "characterId": 3,
+        "name": "skill_03_name",
+        "description": "skill_03_desc",
+        "cooldown": 0,
+        "itemCount": 2,
+        "itemId": [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14],
+        "icon": "mightygrip_icon.png"
+    },
+    "4": {
+        "characterId": 4,
+        "name": "skill_04_name",
+        "description": "skill_04_desc",
+        "cooldown": 20,
+        "itemCount": 0,
+        "itemId": [],
+        "icon": "thunderstrike_icon.png"
+    },
+    "5": {
+        "characterId": 5,
+        "name": "skill_05_name",
+        "description": "skill_05_desc",
+        "cooldown": 40,
+        "itemCount": 0,
+        "itemId": [],
+        "icon": "ruyismash.png"
+    },
+    "6": {
+        "characterId": 6,
+        "name": "skill_06_name",
+        "description": "skill_06_desc",
+        "cooldown": 25,
+        "itemCount": 0,
+        "itemId": [],
+        "icon": "chemicalchaos_icon.png"
+    },
+    "7": {
+        "characterId": 7,
+        "name": "skill_07_name",
+        "description": "skill_07_desc",
+        "cooldown": 30,
+        "itemCount": 0,
+        "itemId": [],
+        "icon": "hookoffortune_icon.png"
+    },
+    "8": {
+        "characterId": 8,
+        "name": "skill_08_name",
+        "description": "skill_08_desc",
+        "cooldown": 15,
+        "itemCount": 0,
+        "itemId": [],
+        "icon": "lassopull_icon.png"
+    },
+    "9": {
+        "characterId": 9,
+        "name": "skill_09_name",
+        "description": "skill_09_desc",
+        "cooldown": 27,
+        "itemCount": 0,
+        "itemId": [],
+        "icon": "mysterycarnival_icon.png"
+    }
+}
