@@ -1,0 +1,160 @@
+
+water_drop.png
+size: 1024,1024
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+water30000
+  rotate: false
+  xy: 648, 729
+  size: 322, 124
+  orig: 322, 124
+  offset: 0, 0
+  index: -1
+water30001
+  rotate: true
+  xy: 764, 275
+  size: 286, 97
+  orig: 286, 97
+  offset: 0, 0
+  index: -1
+water30002
+  rotate: false
+  xy: 758, 563
+  size: 228, 92
+  orig: 228, 92
+  offset: 0, 0
+  index: -1
+water30003
+  rotate: true
+  xy: 0, 62
+  size: 181, 77
+  orig: 181, 77
+  offset: 0, 0
+  index: -1
+water30004
+  rotate: true
+  xy: 197, 413
+  size: 132, 49
+  orig: 132, 49
+  offset: 0, 0
+  index: -1
+water30005
+  rotate: false
+  xy: 764, 174
+  size: 116, 99
+  orig: 116, 99
+  offset: 0, 0
+  index: -1
+water30006
+  rotate: false
+  xy: 79, 100
+  size: 99, 143
+  orig: 99, 143
+  offset: 0, 0
+  index: -1
+water30007
+  rotate: false
+  xy: 889, 117
+  size: 79, 169
+  orig: 79, 169
+  offset: 0, 0
+  index: -1
+water30008
+  rotate: true
+  xy: 758, 657
+  size: 70, 238
+  orig: 70, 238
+  offset: 0, 0
+  index: -1
+water30009
+  rotate: false
+  xy: 863, 288
+  size: 91, 273
+  orig: 91, 273
+  offset: 0, 0
+  index: -1
+water30010
+  rotate: false
+  xy: 250, 544
+  size: 126, 295
+  orig: 126, 295
+  offset: 0, 0
+  index: -1
+water30011
+  rotate: false
+  xy: 0, 245
+  size: 195, 300
+  orig: 195, 300
+  offset: 0, 0
+  index: -1
+water30012
+  rotate: false
+  xy: 395, 711
+  size: 251, 297
+  orig: 251, 297
+  offset: 0, 0
+  index: -1
+water30013
+  rotate: true
+  xy: 0, 547
+  size: 292, 248
+  orig: 292, 248
+  offset: 0, 0
+  index: -1
+water30014
+  rotate: false
+  xy: 248, 353
+  size: 343, 189
+  orig: 343, 189
+  offset: 0, 0
+  index: -1
+water30015
+  rotate: false
+  xy: 648, 855
+  size: 362, 153
+  orig: 362, 153
+  offset: 0, 0
+  index: -1
+water30016
+  rotate: false
+  xy: 180, 27
+  size: 356, 159
+  orig: 356, 159
+  offset: 0, 0
+  index: -1
+water30017
+  rotate: false
+  xy: 378, 546
+  size: 378, 163
+  orig: 378, 163
+  offset: 0, 0
+  index: -1
+water30018
+  rotate: true
+  xy: 593, 152
+  size: 392, 169
+  orig: 392, 169
+  offset: 0, 0
+  index: -1
+water30019
+  rotate: false
+  xy: 538, 0
+  size: 349, 150
+  orig: 349, 150
+  offset: 0, 0
+  index: -1
+water30020
+  rotate: false
+  xy: 197, 188
+  size: 377, 163
+  orig: 377, 163
+  offset: 0, 0
+  index: -1
+water30021
+  rotate: false
+  xy: 0, 841
+  size: 393, 167
+  orig: 393, 167
+  offset: 0, 0
+  index: -1

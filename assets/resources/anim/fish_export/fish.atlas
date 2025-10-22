@@ -1,0 +1,48 @@
+
+fish.png
+size: 1996,1024
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+Atlantic Mackerel
+  rotate: true
+  xy: 1602, 491
+  size: 530, 189
+  orig: 530, 189
+  offset: 0, 0
+  index: -1
+Great Barracuda
+  rotate: false
+  xy: 1602, 142
+  size: 391, 151
+  orig: 391, 151
+  offset: 0, 0
+  index: -1
+Neon Tetra
+  rotate: true
+  xy: 1793, 630
+  size: 391, 186
+  orig: 391, 186
+  offset: 0, 0
+  index: -1
+Shadowfin Marlin (Sailfish)
+  rotate: false
+  xy: 0, 65
+  size: 1600, 956
+  orig: 1600, 956
+  offset: 0, 0
+  index: -1
+Swordfish
+  rotate: false
+  xy: 1602, 0
+  size: 380, 140
+  orig: 380, 140
+  offset: 0, 0
+  index: -1
+fish_shadow
+  rotate: false
+  xy: 1602, 295
+  size: 388, 194
+  orig: 388, 194
+  offset: 0, 0
+  index: -1
