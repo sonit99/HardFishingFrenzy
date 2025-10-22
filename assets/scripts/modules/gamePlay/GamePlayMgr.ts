@@ -43,7 +43,7 @@ export default class GamePlayMgr extends cc.Component {
         this.arrow.active = true;
 
         // === Đặt hook ở tip của rod ===
-        
+
         const tipWorld = this.getRodTipWorldPos();
         const tipLocal = this.hook.parent.convertToNodeSpaceAR(tipWorld);
         this.hook.setPosition(tipLocal);
@@ -108,6 +108,9 @@ export default class GamePlayMgr extends cc.Component {
         cc.log("launch velocity:", vx, vy);
         this.hookVelocity = cc.v2(vx, vy);
         cc.log("hook velocity", this.hookVelocity);
+        const angleRad = Math.atan2(this.hookVelocity.y, this.hookVelocity.x);
+        const hookAngle = cc.misc.radiansToDegrees(angleRad) + 90; // offset 90° để 0° = hướng xuống
+        this.hook.angle = hookAngle;
     }
 
 
@@ -127,6 +130,11 @@ export default class GamePlayMgr extends cc.Component {
             // Hook đang bay
             this.hookVelocity.y += this.gravity * (1 + Math.abs(this.hookVelocity.y) / 500) * dt;
             this.hook.setPosition(this.hook.getPosition().add(this.hookVelocity.mul(dt)));
+            // ✅ Hook xoay theo vận tốc hiện tại
+            const dir = this.hookVelocity.normalize();
+            const rad = Math.atan2(dir.y, dir.x);
+            const angle = cc.misc.radiansToDegrees(rad) + 90; // 0° = xuống
+            this.hook.angle = cc.misc.lerp(this.hook.angle, angle, 0.2); // quay mượt
 
             // Camera follow
             const targetCamPos = this.hook.getPosition().add(cc.v2(this.cameraOffset.x));
@@ -142,13 +150,30 @@ export default class GamePlayMgr extends cc.Component {
     }
 
     hookHitWater() {
-        // this.isFlying = false;
+        this.isFlying = false;
         this.hookVelocity = cc.v2(0, 0);
-        // const waterPos = this.waterArea.getPosition();
-        // this.cameraNode.runAction(
-        //     cc.moveTo(1, cc.v2(waterPos.x, waterPos.y)).easing(cc.easeCubicActionOut())
-        // );
+
         cc.log("🎣 Hook hit water, waiting for fish...");
+
+        // 1️⃣ Hook chìm xuống
+        const sinkDepth = 200; // chiều sâu tính từ mặt nước
+        const sinkTime = 1.5; // thời gian chìm
+        const targetY = this.hook.y - sinkDepth;
+
+        const sinkAction = cc.sequence(
+            cc.moveTo(sinkTime, cc.v2(this.hook.x, targetY)).easing(cc.easeCubicActionOut()),
+            cc.callFunc(() => {
+                cc.log("💧 Hook reached depth, waiting for fish...");
+                // 2️⃣ Khi hook dừng, gọi FishController
+                if (this.waterArea && this.waterArea.getComponent("FishCtrl")) {
+                    const fishCtrl = this.waterArea.getComponent("FishCtrl") as any;
+                    fishCtrl.onHookInWater(this.hook);
+                } else {
+                    cc.warn("⚠️ fishCtrl chưa được gán trong GamePlayMgr");
+                }
+            })
+        );
+        this.hook.runAction(sinkAction);
     }
 
     private getRodTipWorldPos(): cc.Vec2 {
@@ -161,5 +186,35 @@ export default class GamePlayMgr extends cc.Component {
         );
         cc.log("rodtip:", this.rod.convertToWorldSpaceAR(tipLocal));
         return this.rod.convertToWorldSpaceAR(tipLocal);
+    }
+
+    /** 🎯 Tính world position của đầu móc câu (phần dưới cùng) */
+    getHookTipWorldPos(): cc.Vec2 {
+        if (!this.hook) return cc.v2(0, 0);
+
+        // 1️⃣ Lấy anchor & kích thước
+        const anchor = this.hook.getAnchorPoint();
+        const w = this.hook.width;
+        const h = this.hook.height;
+
+        // 2️⃣ Vị trí local của tip (phần dưới cùng)
+        // anchor.y = 1 => phần dưới nằm cách anchor h đơn vị
+        const tipLocal = cc.v2(
+            (0.5 - anchor.x) * w,  // lệch ngang (anchor.x = 0.5 → 0)
+            -h * anchor.y           // đi xuống theo anchor y
+        );
+
+        // 3️⃣ Xoay điểm này theo góc hook.angle
+        const rad = cc.misc.degreesToRadians(this.hook.angle);
+        const cos = Math.cos(rad);
+        const sin = Math.sin(rad);
+        const rotatedTip = cc.v2(
+            tipLocal.x * cos - tipLocal.y * sin,
+            tipLocal.x * sin + tipLocal.y * cos
+        );
+
+        // 4️⃣ Chuyển về world space
+        const tipWorld = this.hook.convertToWorldSpaceAR(rotatedTip);
+        return tipWorld;
     }
 }

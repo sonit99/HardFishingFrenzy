@@ -1,22 +1,15 @@
 {
   "prefabs": {
     "pages": {
-      "Customization": "prefabs/pages/Customization",
       "GamePlay": "prefabs/pages/GamePlay",
       "Home": "prefabs/pages/Home",
-      "Lobby": "prefabs/pages/Lobby",
-      "Mode": "prefabs/pages/Mode",
-      "OpponentSearch": "prefabs/pages/OpponentSearch",
       "Ranking": "prefabs/pages/Ranking",
-      "Reward": "prefabs/pages/Reward",
-      "Settings": "prefabs/pages/Settings",
-      "Shop": "prefabs/pages/Shop"
+      "Reward": "prefabs/pages/Reward"
     },
     "popups": {
-      "PlayerDetail": "prefabs/popups/PlayerDetail"
     },
     "items": {
-      "RankingItem": "prefabs/items/Ranking_Item"
+      "Fish": "prefabs/items/Fish"
     }
   },
   "textures": {

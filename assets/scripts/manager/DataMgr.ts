@@ -13,23 +13,20 @@ export class DataManager {
 
     private constructor() { } // private để đảm bảo singleton
 
-    private _objects: any = null;
+    private _fishes: any = null;
     private _characters: any = null;
-    private _skills: any = null;
     private _paths: any = null;
 
     /** Load tất cả JSON */
     public async loadAll(): Promise<void> {
-        const [objects, characters, skills, paths] = await Promise.all([
-            this.loadJSON("db/itemHooks"),
+        const [fishes, characters, paths] = await Promise.all([
+            this.loadJSON("db/fish"),
             this.loadJSON("db/characters"),
-            this.loadJSON("db/skills"),
             this.loadJSON("db/paths"),
         ]);
 
-        this._objects = objects;
+        this._fishes = fishes;
         this._characters = characters;
-        this._skills = skills;
         this._paths = paths;
     }
 
@@ -49,13 +46,14 @@ export class DataManager {
 
     // ====== API truy xuất dữ liệu ======
     // ====== Objects ====== 
-    public getObjectById(id: number): any {
-        if (!this._objects) return null;
-        return Object.values(this._objects).find((o: any) => o.id === id) || null;
+    public getFishName(key: string): any {
+        if (!this._fishes) return null;
+        return this._fishes[key] || null;
     }
 
     public getAllObjects(): any {
-        return this._objects;
+        if (!this._fishes) return null;
+        return this._fishes;
     }
 
     // ====== Characters ====== 
@@ -68,16 +66,6 @@ export class DataManager {
         return this._characters;
     }
 
-    // ====== Skills ====== 
-    public getSkillById(id: number): any {
-        if (!this._skills) return null;
-        return this._skills[id] || null;
-    }
-
-    public getAllSkills(): any {
-        return this._skills;
-    }
-
     // ========== Paths ========== 
     public getPrefabPath(name: string) {
         const groups = this._paths.prefabs;
@@ -87,18 +75,6 @@ export class DataManager {
             }
         }
         return null;
-    }
-
-    public getSoundPath(name: string) {
-        return this._paths.sounds[name];
-    }
-
-    public getTexturePath(name: string) {
-        return this._paths.textures[name];
-    }
-
-    public getMusicPath(name: string) {
-        return this._paths.music[name];
     }
 
     public getPrefabs(name: string): Promise<cc.Prefab> {
@@ -118,4 +94,18 @@ export class DataManager {
             });
         });
     }
+    // ====== Sounds, Textures, Music ======
+    public getSoundPath(name: string) {
+        return this._paths.sounds[name];
+    }
+
+    public getTexturePath(name: string) {
+        return this._paths.textures[name];
+    }
+
+    public getMusicPath(name: string) {
+        return this._paths.music[name];
+    }
+
+
 }

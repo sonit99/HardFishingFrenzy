@@ -1,3 +1,5 @@
+import { DataManager } from "../../manager/DataMgr";
+
 const { ccclass, property } = cc._decorator;
 
 enum FishRarity {
@@ -15,15 +17,21 @@ interface FishInfo {
 
 @ccclass
 export default class FishController extends cc.Component {
-    @property(cc.Prefab)
-    fishPrefab: cc.Prefab = null;
-
+    private fishPrefab: cc.Prefab = null;
     private fishes: FishInfo[] = [];
     private spawnRangeX: number = 800;
     private spawnRangeY: number = 300;
 
     start() {
-        // this.spawnInitialFish();
+        try {
+            DataManager.instance.getPrefabs("Fish").then((prefab: cc.Prefab) => {
+                this.fishPrefab = prefab;
+                this.spawnInitialFish();
+            });
+        }
+        catch (err) {
+            cc.error("Failed to load fish prefab:", err);
+        }
     }
 
     spawnInitialFish() {
@@ -59,14 +67,40 @@ export default class FishController extends cc.Component {
             }
         }
         if (nearest) {
-            cc.log(`🐠 Nearest fish (${nearest.rarity}) moving to hook`);
-            nearest.node.runAction(cc.moveTo(2, cc.v2(hook.position.x, hook.position.y)));
-            this.scheduleOnce(() => this.onFishBite(nearest), 2);
+            cc.log(`🐠 ${nearest.rarity} moving toward hook...`);
+            nearest.node.stopAllActions();
+
+            // Bơi tới hook từ từ (có easing)
+            // === Lấy world vị trí tip của hook ===
+            const tipWorld = this.node.parent.getComponent("GamePlayMgr").getHookTipWorldPos();
+            // hoặc nếu hook có reference tới GamePlayMgr, gọi trực tiếp
+
+            // === Chuyển sang hệ toạ độ của cá ===
+            const tipInFishParent = nearest.node.parent.convertToNodeSpaceAR(tipWorld);
+
+            // ✅ Xác định hướng bơi
+            if (tipInFishParent.x > nearest.node.x) {
+                // Hook nằm bên trái cá
+                nearest.node.scaleX = -Math.abs(nearest.node.scaleX); // bơi sang trái
+            } else {
+                nearest.node.scaleX = Math.abs(nearest.node.scaleX);  // bơi sang phải
+            }
+
+            // === Di chuyển tới đầu móc câu (phần tip)
+            const swim = cc.moveTo(2.0, cc.v2(tipInFishParent.x - 5, tipInFishParent.y + 5))
+                .easing(cc.easeCubicActionInOut());
+            nearest.node.runAction(swim);
+
+            // Sau khi tới gần hook → "cắn câu"
+            this.scheduleOnce(() => this.onFishBite(nearest), 2.5);
         }
+
     }
 
     onFishBite(fish: FishInfo) {
         cc.log(`🎯 ${fish.rarity} fish bit the hook!`);
         this.node.emit("FishBitten", fish);
+
+        fish.node.children[0].getComponent(sp.Skeleton).setAnimation(0, "catch", true);
     }
 }

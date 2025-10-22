@@ -100,7 +100,7 @@ export default class RopeRenderer extends cc.Component {
 
         // === Vẽ dây ===
         this.gfx.clear();
-        this.gfx.lineWidth = 2;
+        this.gfx.lineWidth = 4;
         this.gfx.strokeColor = cc.Color.BLACK;
         this.gfx.moveTo(this.currentPoints[0].x, this.currentPoints[0].y);
         for (let i = 1; i <= this.segmentCount; i++) {
