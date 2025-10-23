@@ -1,4 +1,5 @@
 import { DataManager } from "../../manager/DataMgr";
+import SoundUtil from "../../utils/SoundUtil";
 import FishCtrl, { FishInfo } from "./FishCtrl";
 import PopUp from "./PopUp";
 
@@ -30,6 +31,9 @@ export default class GamePlayMgr extends cc.Component {
   @property(cc.Node)
   popup: cc.Node = null;
 
+  @property(sp.Skeleton)
+  characterSpine: sp.Skeleton = null;
+
   private cameraNode: cc.Node = null;
   private maxPower: number = 300;
   private gravity: number = -600;
@@ -48,6 +52,7 @@ export default class GamePlayMgr extends cc.Component {
   async onLoad() {
     await DataManager.instance.loadAll();
     this.cameraNode = this.cameraNode || cc.find("Canvas/Main Camera");
+    cc.log(this.cameraNode);
     this.powerBar.active = false;
     this.arrow.active = true;
 
@@ -68,6 +73,8 @@ export default class GamePlayMgr extends cc.Component {
   }
 
   start() {
+    SoundUtil.instance.playMusic(1);
+    this.characterSpine.setAnimation(0, "stand", true);
     this.schedule(this.updateAngle, 0.02);
   }
 
@@ -86,6 +93,7 @@ export default class GamePlayMgr extends cc.Component {
 
   onTouchStart() {
     if (this.isFlying) return;
+    SoundUtil.instance.playEffect(0);
     this.unschedule(this.updateAngle);
     this.powerBar.active = true;
     this.powerBar.getComponent(cc.ProgressBar).progress = 0;
@@ -163,6 +171,7 @@ export default class GamePlayMgr extends cc.Component {
         0.1
       );
       this.cameraNode.setPosition(targetCamX, currentCamPos.y);
+      cc.log("camera x:", targetCamX, this.cameraNode.x);
 
       // Va chạm nước
       if (this.hook.y <= this.waterArea.y + this.waterArea.height / 2) {
@@ -173,6 +182,7 @@ export default class GamePlayMgr extends cc.Component {
   }
 
   hookHitWater() {
+    SoundUtil.instance.playEffect(1, 1.0);
     this.isFlying = false;
     this.hookVelocity = cc.v2(0, 0);
 
@@ -306,11 +316,20 @@ export default class GamePlayMgr extends cc.Component {
 
   private onMiniGameMiss(failRatio: number) {
     cc.log(`🎯 MiniGame miss: ${failRatio}`);
+    SoundUtil.instance.playEffect(5);
+    if (failRatio === 0.8) {
+      SoundUtil.instance.playEffect(7);
+    }
     this.powerBar.getComponent(cc.ProgressBar).progress = failRatio;
   }
 
   private onMiniGameProgress(ratio: number) {
     cc.log(`🎯 MiniGame progress: ${ratio}`);
+    SoundUtil.instance.playEffect(3);
+    this.characterSpine.setAnimation(0, "fishing", false);
+    this.characterSpine.setEndListener(() => {
+      this.characterSpine.setAnimation(0, "stand", true);
+    });
 
     // 🎣 Mục tiêu: hook di chuyển dần về vị trí cần câu (đầu rod)
     const rodTipWorld = this.getRodTipWorldPos();
@@ -335,6 +354,8 @@ export default class GamePlayMgr extends cc.Component {
 
   private onMiniGameWin() {
     cc.log("🏆 Fish successfully caught!");
+    SoundUtil.instance.playEffect(8);
+    SoundUtil.instance.playEffect(9);
 
     if (this.hookedFish) {
       this.hookedFish.destroy();

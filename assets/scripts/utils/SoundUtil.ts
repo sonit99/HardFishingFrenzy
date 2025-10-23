@@ -1,54 +1,45 @@
-export class SoundUtil{
+const { ccclass, property } = cc._decorator;
 
-    static UI_SFX_Path:string = "resources/sounds/ui/%s";
-    static Skill_SFX_Path:string = "resources/sounds/skill/%s";
-    static BG_Music_Path:string = "resources/sounds/%s";
-    static CV_SFX_Path:string = "resources/sounds/cv/%s";
+@ccclass
+export default class SoundUtil extends cc.Component {
+  static instance: SoundUtil = null;
 
-    static playMusic(url:string):void{
-        cc.resources.load(url, cc.AudioClip, function (err, clip:cc.AudioClip) {
-            cc.audioEngine.playMusic(clip, true);
-        });
-    }
-    
-    static playEffect(url:string):void{
-        cc.resources.load(url, cc.AudioClip, function (err, clip:cc.AudioClip) {
-            cc.audioEngine.playEffect(clip, false);
-        });
-    }
-    
-    static playClick():void{
-        SoundUtil.playEffect("sound/dianji");
-    }
-    
-    static playBtnCloseEffect():void{
-        SoundUtil.playEffect("sound/UI_qh");
-    }
-    
-    static playGainGoods():void{
-        SoundUtil.playEffect("sound/getitem");
-    }
-    
-    static playGainGoodsEffectNew():void{
-        SoundUtil.playEffect("sound/sound_getitem");
-    }
+  onLoad() {
+    SoundUtil.instance = this;
+  }
 
-    static playSkillSFX(t:string, finishCbFunc?:Function, loadedFunc?:Function) {
-        if (null == t || "" == t) return false;
-        let fullPath = cc.js.formatStr(SoundUtil.Skill_SFX_Path,t);
-        return SoundUtil.play(fullPath, false, finishCbFunc,loadedFunc);
-    }
+  @property(cc.AudioClip)
+  listBGM: cc.AudioClip[] = [];
 
-    static play(fullPath:string,isLoop:boolean,finishCbFunc?:Function,loadedFunc?:Function){
-        cc.resources.load(fullPath, cc.AudioClip, function (err, clip:cc.AudioClip) {
-            let audioId = cc.audioEngine.playEffect(clip, isLoop);
-            loadedFunc(audioId);
-            if(finishCbFunc != null){
-                cc.audioEngine.setFinishCallback(audioId,function(){
-                    finishCbFunc();
-                });
-            }
-        });
-    }
+  @property(cc.AudioClip)
+  listSound: cc.AudioClip[] = [];
 
+  playMusic(id: number): void {
+    if (this.listBGM[id]) {
+      cc.audioEngine.playMusic(this.listBGM[id], true);
+    }
+  }
+
+  playEffect(id: number, forward: number = 0): void {
+    let clip = this.listSound[id];
+    if (clip) {
+      let audioId = cc.audioEngine.playEffect(clip, false);
+      // Sau khi audio bắt đầu, nhảy đến 1 giây
+      this.scheduleOnce(() => {
+        cc.audioEngine.setCurrentTime(audioId, forward);
+      }, 0);
+    }
+  }
+
+  // static play(fullPath:string,isLoop:boolean,finishCbFunc?:Function,loadedFunc?:Function){
+  //     cc.resources.load(fullPath, cc.AudioClip, function (err, clip:cc.AudioClip) {
+  //         let audioId = cc.audioEngine.playEffect(clip, isLoop);
+  //         loadedFunc(audioId);
+  //         if(finishCbFunc != null){
+  //             cc.audioEngine.setFinishCallback(audioId,function(){
+  //                 finishCbFunc();
+  //             });
+  //         }
+  //     });
+  // }
 }

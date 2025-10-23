@@ -1,4 +1,5 @@
 import { DataManager } from "../../manager/DataMgr";
+import SoundUtil from "../../utils/SoundUtil";
 import GamePlayMgr from "./GamePlayMgr";
 
 const { ccclass } = cc._decorator;
@@ -151,6 +152,8 @@ export default class FishController extends cc.Component {
     onFishBite(fish: FishInfo) {
         cc.log(`🎯 ${fish.rarity} fish bit the hook!`);
         this.node.emit("FishBitten", fish);
+        SoundUtil.instance.playEffect(2);
+        SoundUtil.instance.playEffect(4);
 
         fish.node.children[0]
             .getComponent(sp.Skeleton)
