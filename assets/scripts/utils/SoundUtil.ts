@@ -36,6 +36,7 @@ export default class SoundUtil extends cc.Component {
     if (clip) {
       cc.audioEngine.playEffect(clip, true);
     }
+  }
 
   // static play(fullPath:string,isLoop:boolean,finishCbFunc?:Function,loadedFunc?:Function){
   //     cc.resources.load(fullPath, cc.AudioClip, function (err, clip:cc.AudioClip) {

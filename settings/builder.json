@@ -1,9 +1,8 @@
 {
-  "title": "GoldMinerPvp",
+  "title": "Main",
   "packageName": "org.cocos2d.demo",
-  "startScene": "0b0eec10-3726-424f-a1d1-8d2710276c53",
+  "startScene": "69cc56ff-5bce-429d-b830-e6e3467b9439",
   "excludeScenes": [
-    "ae75b82c-178e-4ee8-9152-050cc09f62d5",
     "69cc56ff-5bce-429d-b830-e6e3467b9439"
   ],
   "orientation": {
@@ -12,7 +11,7 @@
     "portrait": false,
     "upsideDown": false
   },
-  "webOrientation": "auto",
+  "webOrientation": "portrait",
   "inlineSpriteFrames": true,
   "inlineSpriteFrames_native": true,
   "mainCompressionType": "merge_all_json",
