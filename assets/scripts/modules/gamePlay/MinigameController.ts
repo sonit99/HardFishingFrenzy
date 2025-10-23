@@ -78,20 +78,22 @@ export default class MiniGameController extends cc.Component {
 
     const x = this.arrow.x;
     if (x >= this.greenStartX && x <= this.greenEndX) {
-      // ✅ ấn đúng
+      // ✅ Right
       this.progress++;
       cc.log(`✅ Hit! Progress: ${this.progress}/${this.hitsToWin}`);
 
       // 🔥 Emit event để GamePlayMgr biết
-      this.node.emit("MiniGameProgress", this.progress / this.hitsToWin);
+      this.node.emit("MiniGameProgress", this.progress / this.hitsToWin, this.lives / this.maxLives);
       
       if (this.progress >= this.hitsToWin) {
         this.win();
       }
     } else {
-      // ❌ ấn sai
+      // ❌ Wrong
       this.lives--;
       cc.log(`❌ Miss! Lives: ${this.lives}/${this.maxLives}`);
+      // 🔥 Emit event để GamePlayMgr biết
+      this.node.emit("MiniGameMiss", (this.maxLives - this.lives) / this.maxLives);
       if (this.lives <= 0) {
         this.fail();
       }
@@ -99,13 +101,13 @@ export default class MiniGameController extends cc.Component {
   }
 
   win() {
-    cc.log("🏆 Fish caught successfully!");
+    // cc.log("🏆 Fish caught successfully!");
     this.node.emit("MiniGameWin");
     this.stop();
   }
 
   fail() {
-    cc.log("💥 Line snapped! Fish escaped!");
+    // cc.log("💥 Line snapped! Fish escaped!");
     this.node.emit("MiniGameFail");
     this.stop();
   }

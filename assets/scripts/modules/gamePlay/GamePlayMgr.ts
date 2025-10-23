@@ -1,4 +1,6 @@
-import FishCtrl from "./FishCtrl";
+import { DataManager } from "../../manager/DataMgr";
+import FishCtrl, { FishInfo } from "./FishCtrl";
+import PopUp from "./PopUp";
 
 const { ccclass, property } = cc._decorator;
 
@@ -25,6 +27,9 @@ export default class GamePlayMgr extends cc.Component {
   @property(cc.Node)
   minigameUI: cc.Node = null;
 
+  @property(cc.Node)
+  popup: cc.Node = null;
+
   private cameraNode: cc.Node = null;
   private maxPower: number = 300;
   private gravity: number = -600;
@@ -38,31 +43,28 @@ export default class GamePlayMgr extends cc.Component {
   private cameraOffset: cc.Vec2 = cc.v2();
 
   private hookedFish: cc.Node = null;
+  private hookedFishInfo: FishInfo = null;
 
-  onLoad() {
+  async onLoad() {
+    await DataManager.instance.loadAll();
     this.cameraNode = this.cameraNode || cc.find("Canvas/Main Camera");
     this.powerBar.active = false;
     this.arrow.active = true;
 
     // === Đặt hook ở tip của rod ===
-
     // const tipWorld = this.getRodTipWorldPos();
     // const tipLocal = this.hook.parent.convertToNodeSpaceAR(tipWorld);
     // this.hook.setPosition(tipLocal);
     // this.hookInitialPos = tipLocal.clone();
     // cc.log(tipLocal);
-    this.hookInitialPos = cc.v2(432, 310);
-    this.hook.setPosition(cc.v2(432, 310));
+
+    this.hookInitialPos = cc.v2(382, 322);
+    this.hook.setPosition(cc.v2(382, 322));
 
     // Camera offset
     const camWorld = this.cameraNode.convertToWorldSpaceAR(cc.v2(0, 0));
     const hookWorld = this.hook.convertToWorldSpaceAR(cc.v2(0, 0));
     this.cameraOffset = cc.v2(camWorld.x - hookWorld.x - 100, 0);
-
-    // Input
-    this.throwBtn.on(cc.Node.EventType.TOUCH_START, this.onTouchStart, this);
-    this.throwBtn.on(cc.Node.EventType.TOUCH_END, this.onTouchEnd, this);
-    this.throwBtn.on(cc.Node.EventType.TOUCH_CANCEL, this.onTouchEnd, this);
   }
 
   start() {
@@ -70,6 +72,11 @@ export default class GamePlayMgr extends cc.Component {
   }
 
   updateAngle() {
+    // Input
+    this.throwBtn.on(cc.Node.EventType.TOUCH_START, this.onTouchStart, this);
+    this.throwBtn.on(cc.Node.EventType.TOUCH_END, this.onTouchEnd, this);
+    this.throwBtn.on(cc.Node.EventType.TOUCH_CANCEL, this.onTouchEnd, this);
+    
     if (this.isFlying) return;
     const time = (Date.now() % 2000) / 2000;
     const swing = Math.sin(time * Math.PI * 2) * 0.5 + 0.5;
@@ -103,6 +110,11 @@ export default class GamePlayMgr extends cc.Component {
     this.isCharging = false;
     this.unschedule(this.increasePower);
     this.launchHook();
+        // Stop Input
+    this.throwBtn.off(cc.Node.EventType.TOUCH_START, this.onTouchStart, this);
+    this.throwBtn.off(cc.Node.EventType.TOUCH_END, this.onTouchEnd, this);
+    this.throwBtn.off(cc.Node.EventType.TOUCH_CANCEL, this.onTouchEnd, this);
+    
   }
 
   launchHook() {
@@ -127,12 +139,6 @@ export default class GamePlayMgr extends cc.Component {
 
   update(dt: number) {
     if (!this.isFlying) {
-      // cc.log("🪝 Hook not flying");
-      // Khi chưa ném: hook luôn bám tip rod
-      // const tipWorld = this.getRodTipWorldPos();
-      // const tipLocal = this.hook.parent.convertToNodeSpaceAR(tipWorld);
-      // this.hook.setPosition(tipLocal);
-      // cc.log(this.hook.getPosition(), this.hookInitialPos);
       return;
     } else {
       // Hook đang bay
@@ -238,10 +244,12 @@ export default class GamePlayMgr extends cc.Component {
   }
 
   /** 🔥 Bắt đầu minigame dựa theo độ hiếm cá */
-  startMiniGame(rarity: string, worldPos?: cc.Vec2, fishNode?: cc.Node) {
-    const miniGameCtrl = this.minigameUI.getComponent("MinigameController");
+  startMiniGame(fishInfo: FishInfo) {
+    this.hookedFishInfo = fishInfo;
+    this.hookedFish = fishInfo.node;
+
     let difficulty = 1;
-    switch (rarity) {
+    switch (fishInfo.rarity) {
       case "common":
         difficulty = 1;
         break;
@@ -255,21 +263,21 @@ export default class GamePlayMgr extends cc.Component {
         difficulty = 1.7;
         break;
       case "legend":
-        difficulty = 2.2;
+        difficulty = 2.0;
         break;
     }
     // 🧩 Clone minigame UI và gắn vào cá
     const miniClone = cc.instantiate(this.minigameUI);
     miniClone.active = true;
-    miniClone.parent = fishNode; // gắn trực tiếp vào cá
-    miniClone.setPosition(0, -80); // nằm dưới bụng cá
-    miniClone.angle = -fishNode.angle;
+    miniClone.parent = fishInfo.node; // gắn trực tiếp vào cá
+    miniClone.setPosition(0, -100); // nằm dưới bụng cá
 
     const miniCtrl = miniClone.getComponent("MinigameController");
     miniCtrl.startMiniGame(difficulty); // không cần worldPos nữa
 
     // 🎧 Lắng nghe sự kiện riêng cho clone này
     miniClone.on("MiniGameProgress", this.onMiniGameProgress, this);
+    miniClone.on("MiniGameMiss", this.onMiniGameMiss, this);
     miniClone.on("MiniGameWin", () => {
       this.onMiniGameWin();
       miniClone.destroy();
@@ -278,9 +286,10 @@ export default class GamePlayMgr extends cc.Component {
       this.onMiniGameFail();
       miniClone.destroy();
     }, this);
-
-    // Lưu con cá đang bị câu
-    this.hookedFish = fishNode;
+    
+    // Hiển thị ProgressBar
+    this.powerBar.active = true;
+    this.powerBar.getComponent(cc.ProgressBar).progress = 0;
   }
 
   private updateCameraFollow(targetHookPos: cc.Vec2) {
@@ -295,6 +304,11 @@ export default class GamePlayMgr extends cc.Component {
     this.cameraNode.setPosition(targetCamX, currentCamPos.y);
   }
 
+  private onMiniGameMiss(failRatio: number) {
+    cc.log(`🎯 MiniGame miss: ${failRatio}`);
+    this.powerBar.getComponent(cc.ProgressBar).progress = failRatio;
+  }
+
   private onMiniGameProgress(ratio: number) {
     cc.log(`🎯 MiniGame progress: ${ratio}`);
 
@@ -305,37 +319,34 @@ export default class GamePlayMgr extends cc.Component {
     // Vị trí hiện tại của hook
     const currentPos = this.hook.getPosition();
 
-    // Tính vị trí mục tiêu dựa theo tỉ lệ kéo
-    let targetPos = currentPos.lerp(rodTipLocal, ratio);
+    // 🧩 Làm mượt và tăng tốc theo tiến trình
+    const easedRatio = Math.pow(ratio, 2.2); // tốc độ kéo tăng dần
+    const pullStrength = 0.1 + easedRatio * 0.9;
 
-    // Di chuyển mượt hook về gần cần
-    const moveAction = cc
-      .moveTo(0.4, targetPos)
-      .easing(cc.easeCubicActionOut());
+    // 🎣 Di chuyển hook về cần
+    let targetPos = currentPos.lerp(rodTipLocal, pullStrength);
     this.hook.stopAllActions();
-    this.hook.runAction(moveAction);
+    this.hook.runAction(
+      cc.moveTo(0.3, targetPos).easing(cc.easeCubicActionOut())
+    );
 
-    if (ratio === 1) {
-      targetPos = cc.v2(0, 0);
-    }
     this.updateCameraFollow(targetPos);
   }
 
   private onMiniGameWin() {
     cc.log("🏆 Fish successfully caught!");
-    // Kéo hook hoàn toàn về rod
-    const rodTipWorld = this.getRodTipWorldPos();
-    const rodTipLocal = this.hook.parent.convertToNodeSpaceAR(rodTipWorld);
-    const moveBack = cc.moveTo(0.6, rodTipLocal).easing(cc.easeBackIn());
-    this.hook.runAction(moveBack);
 
     if (this.hookedFish) {
-      // const moveFish = cc
-      //   .moveTo(0.6, rodTipLocal.add(cc.v2(0, -20)))
-      //   .easing(cc.easeBackIn());
-      // this.hookedFish.runAction(moveFish);
       this.hookedFish.destroy();
       this.hookedFish = null;
+      this.popup.active = true;
+      this.popup.getComponent(PopUp).setFishInfo(
+        this.hookedFishInfo.stats.call,
+        this.hookedFishInfo.stats.length,
+        this.hookedFishInfo.stats.value,
+        this.hookedFishInfo.stats.rarity,
+        this.hookedFishInfo.stats.id
+      );
     }
 
     this.resetCycle();
@@ -343,15 +354,26 @@ export default class GamePlayMgr extends cc.Component {
 
   private onMiniGameFail() {
     cc.log("💥 Line snapped, fish escaped!");
+
+
     // Hook rơi xuống hoặc reset vị trí
     this.hook.runAction(
       cc.sequence(
         cc.moveBy(0.5, cc.v2(0, -100)).easing(cc.easeIn(2.0)),
         cc.callFunc(() => {
-          this.resetCycle();
+          // Kéo hook hoàn toàn về rod
+          const rodTipWorld = this.getRodTipWorldPos();
+          const rodTipLocal = this.hook.parent.convertToNodeSpaceAR(rodTipWorld);
+          const moveBack = cc.moveTo(0.6, rodTipLocal).easing(cc.easeBackIn());
+          this.hook.runAction(moveBack);
+
+          this.scheduleOnce(() => {
+            this.resetCycle();
+          }, 0.6);
         })
       )
     );
+
     if (this.hookedFish) {
       this.hookedFish.parent = this.waterArea;
       this.hookedFish = null;
@@ -375,6 +397,7 @@ export default class GamePlayMgr extends cc.Component {
     this.hookedFish = null;
     this.cameraNode.setPosition(0, 0);
 
+    this.powerBar.active = false;
     this.arrow.active = true;
     this.schedule(this.updateAngle, 0.02);
   }

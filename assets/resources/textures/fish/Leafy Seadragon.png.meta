@@ -1,0 +1,38 @@
+{
+  "ver": "2.3.7",
+  "uuid": "ce0a15be-dda8-4bbd-a663-daedd289aae0",
+  "importer": "texture",
+  "type": "sprite",
+  "wrapMode": "clamp",
+  "filterMode": "bilinear",
+  "premultiplyAlpha": false,
+  "genMipmaps": false,
+  "packable": true,
+  "width": 129,
+  "height": 111,
+  "platformSettings": {},
+  "subMetas": {
+    "Leafy Seadragon": {
+      "ver": "1.0.6",
+      "uuid": "73a855cd-2dee-4868-896e-b16636d300ab",
+      "importer": "sprite-frame",
+      "rawTextureUuid": "ce0a15be-dda8-4bbd-a663-daedd289aae0",
+      "trimType": "auto",
+      "trimThreshold": 1,
+      "rotated": false,
+      "offsetX": 4,
+      "offsetY": -0.5,
+      "trimX": 30,
+      "trimY": 6,
+      "width": 77,
+      "height": 100,
+      "rawWidth": 129,
+      "rawHeight": 111,
+      "borderTop": 0,
+      "borderBottom": 0,
+      "borderLeft": 0,
+      "borderRight": 0,
+      "subMetas": {}
+    }
+  }
+}
