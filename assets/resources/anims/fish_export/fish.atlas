@@ -1,0 +1,104 @@
+
+fish.png
+size: 1724,544
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+Abyssal Leviathan
+  rotate: false
+  xy: 0, 233
+  size: 693, 308
+  orig: 693, 308
+  offset: 0, 0
+  index: -1
+Atlantic Mackerel
+  rotate: false
+  xy: 1299, 93
+  size: 182, 65
+  orig: 182, 65
+  offset: 0, 0
+  index: -1
+Bermuda Moonfish
+  rotate: true
+  xy: 1156, 1
+  size: 199, 141
+  orig: 199, 141
+  offset: 0, 0
+  index: -1
+Crystal Seadragon
+  rotate: false
+  xy: 1514, 138
+  size: 125, 107
+  orig: 125, 107
+  offset: 0, 0
+  index: -1
+Great Barracuda
+  rotate: false
+  xy: 1299, 160
+  size: 213, 85
+  orig: 213, 85
+  offset: 0, 0
+  index: -1
+Leafy Seadragon
+  rotate: false
+  xy: 1483, 25
+  size: 129, 111
+  orig: 129, 111
+  offset: 0, 0
+  index: -1
+Neon Tetra
+  rotate: true
+  xy: 1641, 126
+  size: 128, 61
+  orig: 128, 61
+  offset: 0, 0
+  index: -1
+Ocean Sunfish
+  rotate: true
+  xy: 936, 23
+  size: 177, 218
+  orig: 177, 218
+  offset: 0, 0
+  index: -1
+Ocean_Seraph
+  rotate: false
+  xy: 1299, 0
+  size: 152, 91
+  orig: 152, 91
+  offset: 0, 0
+  index: -1
+Swordfish
+  rotate: true
+  xy: 1618, 256
+  size: 285, 105
+  orig: 285, 105
+  offset: 0, 0
+  index: -1
+Voidfin Levi
+  rotate: false
+  xy: 0, 13
+  size: 544, 218
+  orig: 544, 218
+  offset: 0, 0
+  index: -1
+fish_shadow
+  rotate: false
+  xy: 546, 6
+  size: 388, 194
+  orig: 388, 194
+  offset: 0, 0
+  index: -1
+lionfish
+  rotate: false
+  xy: 1264, 247
+  size: 352, 294
+  orig: 352, 294
+  offset: 0, 0
+  index: -1
+shadowfin_marlin
+  rotate: false
+  xy: 695, 202
+  size: 567, 339
+  orig: 567, 339
+  offset: 0, 0
+  index: -1

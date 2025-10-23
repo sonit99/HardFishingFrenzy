@@ -100,8 +100,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 208.11,
-      "height": 536.51
+      "width": 339,
+      "height": 567
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -113,7 +113,7 @@
       "ctor": "Float64Array",
       "array": [
         82,
-        5,
+        3,
         0,
         0,
         0,
@@ -151,8 +151,8 @@
       }
     ],
     "paused": false,
-    "defaultSkin": "fish_shadow",
-    "defaultAnimation": "swim",
+    "defaultSkin": "Great Barracuda",
+    "defaultAnimation": "catch",
     "_preCacheMode": 0,
     "_cacheMode": 0,
     "loop": true,
@@ -163,13 +163,13 @@
     "_frameCache": null,
     "_curFrame": null,
     "_skeletonCache": null,
-    "_animationName": "swim",
+    "_animationName": "catch",
     "_animationQueue": [],
     "_headAniInfo": null,
     "_playTimes": 0,
     "_isAniComplete": true,
     "_N$skeletonData": {
-      "__uuid__": "ea979d96-3abd-464d-96c2-324b4e130265"
+      "__uuid__": "a75fd364-c2bd-4809-a28e-0227527091cf"
     },
     "_N$_defaultCacheMode": 0,
     "_N$debugSlots": false,
