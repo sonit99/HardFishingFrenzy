@@ -9485,8 +9485,8 @@
       "__type__": "TypedArray",
       "ctor": "Float64Array",
       "array": [
-        0,
-        0,
+        15,
+        2.5,
         0,
         0,
         0,
@@ -10669,6 +10669,9 @@
     "_enabled": true,
     "rod": {
       "__id__": 154
+    },
+    "ropeNode": {
+      "__id__": 177
     },
     "hook": {
       "__id__": 179

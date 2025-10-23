@@ -31,6 +31,12 @@ export default class SoundUtil extends cc.Component {
     }
   }
 
+  playEffectLoop(id: number): void {
+    let clip = this.listSound[id];
+    if (clip) {
+      cc.audioEngine.playEffect(clip, true);
+    }
+
   // static play(fullPath:string,isLoop:boolean,finishCbFunc?:Function,loadedFunc?:Function){
   //     cc.resources.load(fullPath, cc.AudioClip, function (err, clip:cc.AudioClip) {
   //         let audioId = cc.audioEngine.playEffect(clip, isLoop);

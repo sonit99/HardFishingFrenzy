@@ -11,6 +11,9 @@ export default class GamePlayMgr extends cc.Component {
   rod: cc.Node = null;
 
   @property(cc.Node)
+  ropeNode: cc.Node = null;
+
+  @property(cc.Node)
   hook: cc.Node = null;
 
   @property(cc.Node)
@@ -74,6 +77,7 @@ export default class GamePlayMgr extends cc.Component {
 
   start() {
     SoundUtil.instance.playMusic(1);
+    SoundUtil.instance.playEffectLoop(15);
     this.characterSpine.setAnimation(0, "stand", true);
     this.schedule(this.updateAngle, 0.02);
   }
@@ -83,7 +87,7 @@ export default class GamePlayMgr extends cc.Component {
     this.throwBtn.on(cc.Node.EventType.TOUCH_START, this.onTouchStart, this);
     this.throwBtn.on(cc.Node.EventType.TOUCH_END, this.onTouchEnd, this);
     this.throwBtn.on(cc.Node.EventType.TOUCH_CANCEL, this.onTouchEnd, this);
-    
+
     if (this.isFlying) return;
     const time = (Date.now() % 2000) / 2000;
     const swing = Math.sin(time * Math.PI * 2) * 0.5 + 0.5;
@@ -118,23 +122,23 @@ export default class GamePlayMgr extends cc.Component {
     this.isCharging = false;
     this.unschedule(this.increasePower);
     this.launchHook();
-        // Stop Input
+    // Stop Input
     this.throwBtn.off(cc.Node.EventType.TOUCH_START, this.onTouchStart, this);
     this.throwBtn.off(cc.Node.EventType.TOUCH_END, this.onTouchEnd, this);
     this.throwBtn.off(cc.Node.EventType.TOUCH_CANCEL, this.onTouchEnd, this);
-    
   }
 
   launchHook() {
     this.isFlying = true;
+    if (this.ropeNode) {
+      this.ropeNode.getComponent("RopeRenderer").setFlyingState(true);
+    }
+
     const rad = cc.misc.degreesToRadians(90 - this.currentAngle);
-    cc.log("launch angle (rad):", rad);
     let powerScale = 4.5;
     const vx = Math.cos(rad) * this.chargePower * powerScale;
     const vy = Math.sin(rad) * this.chargePower * powerScale;
-    cc.log("launch velocity:", vx, vy);
     this.hookVelocity = cc.v2(vx, vy);
-    cc.log("hook velocity", this.hookVelocity);
     const angleRad = Math.atan2(this.hookVelocity.y, this.hookVelocity.x);
     const hookAngle = cc.misc.radiansToDegrees(angleRad) + 90; // offset 90° để 0° = hướng xuống
     this.hook.angle = hookAngle;
@@ -171,7 +175,6 @@ export default class GamePlayMgr extends cc.Component {
         0.1
       );
       this.cameraNode.setPosition(targetCamX, currentCamPos.y);
-      cc.log("camera x:", targetCamX, this.cameraNode.x);
 
       // Va chạm nước
       if (this.hook.y <= this.waterArea.y + this.waterArea.height / 2) {
@@ -184,6 +187,10 @@ export default class GamePlayMgr extends cc.Component {
   hookHitWater() {
     SoundUtil.instance.playEffect(1, 1.0);
     this.isFlying = false;
+    if (this.ropeNode) {
+      this.ropeNode.getComponent("RopeRenderer").setFlyingState(false);
+    }
+
     this.hookVelocity = cc.v2(0, 0);
 
     cc.log("🎣 Hook hit water, waiting for fish...");
@@ -219,7 +226,6 @@ export default class GamePlayMgr extends cc.Component {
       this.rod.width * (1 - rodAnchor.x),
       this.rod.height * (1 - rodAnchor.y)
     );
-    cc.log("rodtip:", this.rod.convertToWorldSpaceAR(tipLocal));
     return this.rod.convertToWorldSpaceAR(tipLocal);
   }
 
@@ -288,15 +294,23 @@ export default class GamePlayMgr extends cc.Component {
     // 🎧 Lắng nghe sự kiện riêng cho clone này
     miniClone.on("MiniGameProgress", this.onMiniGameProgress, this);
     miniClone.on("MiniGameMiss", this.onMiniGameMiss, this);
-    miniClone.on("MiniGameWin", () => {
-      this.onMiniGameWin();
-      miniClone.destroy();
-    }, this);
-    miniClone.on("MiniGameFail", () => {
-      this.onMiniGameFail();
-      miniClone.destroy();
-    }, this);
-    
+    miniClone.on(
+      "MiniGameWin",
+      () => {
+        this.onMiniGameWin();
+        miniClone.destroy();
+      },
+      this
+    );
+    miniClone.on(
+      "MiniGameFail",
+      () => {
+        this.onMiniGameFail();
+        miniClone.destroy();
+      },
+      this
+    );
+
     // Hiển thị ProgressBar
     this.powerBar.active = true;
     this.powerBar.getComponent(cc.ProgressBar).progress = 0;
@@ -361,13 +375,15 @@ export default class GamePlayMgr extends cc.Component {
       this.hookedFish.destroy();
       this.hookedFish = null;
       this.popup.active = true;
-      this.popup.getComponent(PopUp).setFishInfo(
-        this.hookedFishInfo.stats.call,
-        this.hookedFishInfo.stats.length,
-        this.hookedFishInfo.stats.value,
-        this.hookedFishInfo.stats.rarity,
-        this.hookedFishInfo.stats.id
-      );
+      this.popup
+        .getComponent(PopUp)
+        .setFishInfo(
+          this.hookedFishInfo.stats.call,
+          this.hookedFishInfo.stats.length,
+          this.hookedFishInfo.stats.value,
+          this.hookedFishInfo.stats.rarity,
+          this.hookedFishInfo.stats.id
+        );
     }
 
     this.resetCycle();
@@ -376,7 +392,6 @@ export default class GamePlayMgr extends cc.Component {
   private onMiniGameFail() {
     cc.log("💥 Line snapped, fish escaped!");
 
-
     // Hook rơi xuống hoặc reset vị trí
     this.hook.runAction(
       cc.sequence(
@@ -384,7 +399,8 @@ export default class GamePlayMgr extends cc.Component {
         cc.callFunc(() => {
           // Kéo hook hoàn toàn về rod
           const rodTipWorld = this.getRodTipWorldPos();
-          const rodTipLocal = this.hook.parent.convertToNodeSpaceAR(rodTipWorld);
+          const rodTipLocal =
+            this.hook.parent.convertToNodeSpaceAR(rodTipWorld);
           const moveBack = cc.moveTo(0.6, rodTipLocal).easing(cc.easeBackIn());
           this.hook.runAction(moveBack);
 
