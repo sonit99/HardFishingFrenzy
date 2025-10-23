@@ -2,57 +2,117 @@ const { ccclass, property } = cc._decorator;
 
 @ccclass
 export default class MiniGameController extends cc.Component {
-    @property(cc.Node)
-    balanceBar: cc.Node = null;
+  @property(cc.Node)
+  bar: cc.Node = null;
 
-    @property(cc.Node)
-    pointer: cc.Node = null;
+  @property(cc.Node)
+  greenZone: cc.Node = null;
 
-    private balance: number = 0; // -1 to 1
-    private targetBalance: number = 0;
-    private difficulty: number = 1;
+  @property(cc.Node)
+  arrow: cc.Node = null;
 
-    startMiniGame(difficulty: number = 1) {
-        this.node.active = true;
-        this.difficulty = difficulty;
-        this.balance = 0;
-        this.targetBalance = 0;
-        this.schedule(this.updateTarget, 0.5);
+  @property(cc.Node)
+  bg: cc.Node = null;
+
+  private arrowSpeed: number = 100; // pixel/giây
+  private direction: number = 1;
+  private maxLives: number = 5;
+  private lives: number = 5;
+  private progress: number = 0;
+  private hitsToWin: number = 5;
+  private isRunning: boolean = false;
+
+  private greenStartX: number = 0;
+  private greenEndX: number = 0;
+
+  /** difficulty: càng cao => vùng xanh nhỏ, mũi tên nhanh */
+  startMiniGame(difficulty: number = 1, worldPos?: cc.Vec2) {
+    // this.node.active = true;
+    this.bg.on(cc.Node.EventType.TOUCH_START, this.onTouch, this);
+    this.isRunning = true;
+    this.lives = this.maxLives;
+    this.progress = 0;
+
+    // 🧭 Đặt vị trí dưới con cá
+    if (worldPos) {
+      const uiPos = this.node.parent.convertToNodeSpaceAR(worldPos);
+      this.node.setPosition(uiPos.x, uiPos.y - 80); // offset xuống 80px
     }
 
-    updateTarget() {
-        this.targetBalance = (Math.random() * 2 - 1) * this.difficulty;
+    // vùng xanh giữa
+    const totalWidth = this.bar.width;
+    const greenWidth = totalWidth / (3 * difficulty); // càng hiếm càng nhỏ
+    const centerX = 0;
+    this.greenZone.width = greenWidth;
+    this.greenZone.x = centerX;
+
+    this.greenStartX = this.greenZone.x - greenWidth / 2;
+    this.greenEndX = this.greenZone.x + greenWidth / 2;
+
+    this.arrow.x = -totalWidth / 2;
+    this.direction = 1;
+    this.arrowSpeed = 300 * difficulty;
+
+    cc.log("🎯 MiniGame started with difficulty:", difficulty);
+  }
+
+  update(dt: number) {
+    if (!this.isRunning) return;
+
+    const totalWidth = this.bar.width;
+    this.arrow.x += this.direction * this.arrowSpeed * dt;
+
+    // Đảo chiều khi chạm biên
+    if (this.arrow.x > totalWidth / 2) {
+      this.arrow.x = totalWidth / 2;
+      this.direction = -1;
+    } else if (this.arrow.x < -totalWidth / 2) {
+      this.arrow.x = -totalWidth / 2;
+      this.direction = 1;
     }
+  }
 
-    update(dt: number) {
-        if (!this.node.active) return;
+  /** Người chơi ấn khi mũi tên đang ở đâu */
+  onTouch() {
+    if (!this.isRunning) return;
 
-        // move pointer toward target
-        this.balance += (this.targetBalance - this.balance) * dt * 2;
-        this.pointer.x = this.balance * (this.balanceBar.width / 2);
+    const x = this.arrow.x;
+    if (x >= this.greenStartX && x <= this.greenEndX) {
+      // ✅ ấn đúng
+      this.progress++;
+      cc.log(`✅ Hit! Progress: ${this.progress}/${this.hitsToWin}`);
 
-        // failure check
-        if (Math.abs(this.balance) > 0.95) {
-            this.failMiniGame();
-        }
+      // 🔥 Emit event để GamePlayMgr biết
+      this.node.emit("MiniGameProgress", this.progress / this.hitsToWin);
+      
+      if (this.progress >= this.hitsToWin) {
+        this.win();
+      }
+    } else {
+      // ❌ ấn sai
+      this.lives--;
+      cc.log(`❌ Miss! Lives: ${this.lives}/${this.maxLives}`);
+      if (this.lives <= 0) {
+        this.fail();
+      }
     }
+  }
 
-    onTouch(event: cc.Event.EventTouch) {
-        // Example: keep in green by pressing to counter fish force
-        const loc = event.getLocation();
-        const center = cc.v2(cc.winSize.width / 2, cc.winSize.height / 2);
-        this.balance += (loc.x < center.x ? -1 : 1) * 0.02;
-    }
+  win() {
+    cc.log("🏆 Fish caught successfully!");
+    this.node.emit("MiniGameWin");
+    this.stop();
+  }
 
-    failMiniGame() {
-        cc.log("💥 Line snapped!");
-        this.node.active = false;
-        this.unschedule(this.updateTarget);
-    }
+  fail() {
+    cc.log("💥 Line snapped! Fish escaped!");
+    this.node.emit("MiniGameFail");
+    this.stop();
+  }
 
-    winMiniGame() {
-        cc.log("🏆 Fish caught!");
-        this.node.active = false;
-        this.unschedule(this.updateTarget);
-    }
+  stop() {
+    this.isRunning = false;
+    this.bg.off(cc.Node.EventType.TOUCH_START, this.onTouch, this);
+    this.node.active = false;
+  }
 }

@@ -2,9 +2,7 @@
   "prefabs": {
     "pages": {
       "GamePlay": "prefabs/pages/GamePlay",
-      "Home": "prefabs/pages/Home",
-      "Ranking": "prefabs/pages/Ranking",
-      "Reward": "prefabs/pages/Reward"
+      "Home": "prefabs/pages/Home"
     },
     "popups": {
     },
@@ -13,17 +11,9 @@
     }
   },
   "textures": {
-    "Items": "textures/items",
-    "Icons": "textures/icons",
-    "Characters": "textures/characters"
   },
   "sounds": {
-    "click": "sounds/click",
-    "win": "sounds/win",
-    "lose": "sounds/lose"
   },
   "music": {
-    "lobby": "music/lobby",
-    "battle": "music/battle"
   }
 }
