@@ -79,8 +79,8 @@ export default class PopUp extends cc.Component {
     }
 
     private onClose() {
-        this.node.active = false;
         SoundUtil.instance.playEffect(6);
+        this.closePopup();
     }
 
     private onSell() {
@@ -88,6 +88,33 @@ export default class PopUp extends cc.Component {
         SoundUtil.instance.playEffect(10);
         Lobby.instance.coin += parseInt(this.sellPrice.string.replace("x", ""));
         Lobby.instance.updateLabels();
-        this.node.active = false;
+        this.closePopup();
+    }
+
+    isOpen: boolean = false;
+    onClick() {
+        this.isOpen = !this.isOpen;
+        if (this.isOpen) {
+            this.openPopup();
+        } else {
+            this.closePopup();
+        }
+    }
+
+    openPopup() {
+        this.isOpen = true;
+        this.node.active = true;
+        this.node.opacity = 0;
+        this.node.runAction(cc.fadeIn(0.25));
+    }
+
+    closePopup() {
+        let fadeOut = cc.fadeOut(0.25);
+        let deactivate = cc.callFunc(() => {
+            this.node.active = false;
+            this.isOpen = false;
+        });
+        let seq = cc.sequence(fadeOut, deactivate);
+        this.node.runAction(seq);
     }
 }

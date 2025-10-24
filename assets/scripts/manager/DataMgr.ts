@@ -45,7 +45,7 @@ export class DataManager {
     }
 
     // ====== API truy xuất dữ liệu ======
-    // ====== Objects ====== 
+    // ====== Fishes ====== 
     public getFishName(key: string): any {
         if (!this._fishes) return null;
         return this._fishes[key] || null;

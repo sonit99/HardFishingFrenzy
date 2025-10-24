@@ -16,10 +16,10 @@ export default class MiniGameController extends cc.Component {
 
   private arrowSpeed: number = 100; // pixel/giây
   private direction: number = 1;
-  private maxLives: number = 5;
-  private lives: number = 5;
+  private maxLives: number = 1;
+  private lives: number = 1;
   private progress: number = 0;
-  private hitsToWin: number = 5;
+  private hitsToWin: number = 1;
   private isRunning: boolean = false;
 
   private greenStartX: number = 0;

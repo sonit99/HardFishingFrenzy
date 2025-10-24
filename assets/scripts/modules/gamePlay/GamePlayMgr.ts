@@ -20,6 +20,9 @@ export default class GamePlayMgr extends cc.Component {
   arrow: cc.Node = null;
 
   @property(cc.Node)
+  angleNode: cc.Node = null;
+
+  @property(cc.Node)
   powerBar: cc.Node = null;
 
   @property(cc.Node)
@@ -37,7 +40,9 @@ export default class GamePlayMgr extends cc.Component {
   @property(sp.Skeleton)
   characterSpine: sp.Skeleton = null;
 
-  private cameraNode: cc.Node = null;
+  @property(cc.Node)
+  cameraNode: cc.Node = null;
+
   private maxPower: number = 300;
   private gravity: number = -600;
   private isCharging: boolean = false;
@@ -54,10 +59,9 @@ export default class GamePlayMgr extends cc.Component {
 
   async onLoad() {
     await DataManager.instance.loadAll();
-    this.cameraNode = this.cameraNode || cc.find("Canvas/Main Camera");
-    cc.log(this.cameraNode);
+
     this.powerBar.active = false;
-    this.arrow.active = true;
+    this.angleNode.active = true;
 
     // === Đặt hook ở tip của rod ===
     // const tipWorld = this.getRodTipWorldPos();
@@ -69,17 +73,24 @@ export default class GamePlayMgr extends cc.Component {
     this.hookInitialPos = cc.v2(382, 322);
     this.hook.setPosition(cc.v2(382, 322));
 
-    // Camera offset
-    const camWorld = this.cameraNode.convertToWorldSpaceAR(cc.v2(0, 0));
-    const hookWorld = this.hook.convertToWorldSpaceAR(cc.v2(0, 0));
-    this.cameraOffset = cc.v2(camWorld.x - hookWorld.x - 100, 0);
   }
 
   start() {
+    this.node.getChildByName("Player").active = true;
     SoundUtil.instance.playMusic(1);
     SoundUtil.instance.playEffectLoop(15);
     this.characterSpine.setAnimation(0, "stand", true);
     this.schedule(this.updateAngle, 0.02);
+
+    // this.cameraNode = this.cameraNode || cc.find("Canvas/Main Camera");
+    cc.log("cameraNode", this.cameraNode);
+    if (this.cameraNode) {
+      this.cameraNode.active = true;
+    }
+    // Camera offset
+    const camWorld = this.cameraNode.convertToWorldSpaceAR(cc.v2(0, 0));
+    const hookWorld = this.hook.convertToWorldSpaceAR(cc.v2(0, 0));
+    this.cameraOffset = cc.v2(camWorld.x - hookWorld.x - 200, 0);
   }
 
   updateAngle() {
@@ -129,24 +140,28 @@ export default class GamePlayMgr extends cc.Component {
   }
 
   launchHook() {
-    this.isFlying = true;
-    if (this.ropeNode) {
-      this.ropeNode.getComponent("RopeRenderer").setFlyingState(true);
-    }
-
-    const rad = cc.misc.degreesToRadians(90 - this.currentAngle);
-    let powerScale = 4.5;
-    const vx = Math.cos(rad) * this.chargePower * powerScale;
-    const vy = Math.sin(rad) * this.chargePower * powerScale;
-    this.hookVelocity = cc.v2(vx, vy);
-    const angleRad = Math.atan2(this.hookVelocity.y, this.hookVelocity.x);
-    const hookAngle = cc.misc.radiansToDegrees(angleRad) + 90; // offset 90° để 0° = hướng xuống
-    this.hook.angle = hookAngle;
-
+    this.characterSpine.setAnimation(0, "thrown", false);
     this.scheduleOnce(() => {
-      this.powerBar.active = false;
-      this.arrow.active = false;
-    }, 1.0);
+      this.characterSpine.setAnimation(0, "stand", true);
+      this.isFlying = true;
+      if (this.ropeNode) {
+        this.ropeNode.getComponent("RopeRenderer").setFlyingState(true);
+      }
+
+      const rad = cc.misc.degreesToRadians(90 - this.currentAngle);
+      let powerScale = 4.5;
+      const vx = Math.cos(rad) * this.chargePower * powerScale;
+      const vy = Math.sin(rad) * this.chargePower * powerScale;
+      this.hookVelocity = cc.v2(vx, vy);
+      const angleRad = Math.atan2(this.hookVelocity.y, this.hookVelocity.x);
+      const hookAngle = cc.misc.radiansToDegrees(angleRad) + 90; // offset 90° để 0° = hướng xuống
+      this.hook.angle = hookAngle;
+
+      this.scheduleOnce(() => {
+        this.powerBar.active = false;
+        this.angleNode.active = false;
+      }, 0.5);
+    }, 0.5);
   }
 
   update(dt: number) {
@@ -265,7 +280,7 @@ export default class GamePlayMgr extends cc.Component {
     this.hookedFish = fishInfo.node;
 
     let difficulty = 1;
-    switch (fishInfo.rarity) {
+    switch (fishInfo.stats.rarity) {
       case "common":
         difficulty = 1;
         break;
@@ -297,7 +312,7 @@ export default class GamePlayMgr extends cc.Component {
     miniClone.on(
       "MiniGameWin",
       () => {
-        this.onMiniGameWin();
+        // this.onMiniGameWin();
         miniClone.destroy();
       },
       this
@@ -312,8 +327,8 @@ export default class GamePlayMgr extends cc.Component {
     );
 
     // Hiển thị ProgressBar
-    this.powerBar.active = true;
-    this.powerBar.getComponent(cc.ProgressBar).progress = 0;
+    // this.powerBar.active = true;
+    // this.powerBar.getComponent(cc.ProgressBar).progress = 0;
   }
 
   private updateCameraFollow(targetHookPos: cc.Vec2) {
@@ -341,9 +356,9 @@ export default class GamePlayMgr extends cc.Component {
     cc.log(`🎯 MiniGame progress: ${ratio}`);
     SoundUtil.instance.playEffect(3);
     this.characterSpine.setAnimation(0, "fishing", false);
-    this.characterSpine.setEndListener(() => {
+    this.scheduleOnce(() => {
       this.characterSpine.setAnimation(0, "stand", true);
-    });
+    }, 0.5);
 
     // 🎣 Mục tiêu: hook di chuyển dần về vị trí cần câu (đầu rod)
     const rodTipWorld = this.getRodTipWorldPos();
@@ -352,15 +367,31 @@ export default class GamePlayMgr extends cc.Component {
     // Vị trí hiện tại của hook
     const currentPos = this.hook.getPosition();
 
-    // 🧩 Làm mượt và tăng tốc theo tiến trình
+    // // 🧩 Làm mượt và tăng tốc theo tiến trình
     const easedRatio = Math.pow(ratio, 2.2); // tốc độ kéo tăng dần
     const pullStrength = 0.1 + easedRatio * 0.9;
 
     // 🎣 Di chuyển hook về cần
     let targetPos = currentPos.lerp(rodTipLocal, pullStrength);
     this.hook.stopAllActions();
+    // this.hook.runAction(
+    //   cc.moveTo(0.3, targetPos).easing(cc.easeCubicActionOut())
+    // );
+
     this.hook.runAction(
-      cc.moveTo(0.3, targetPos).easing(cc.easeCubicActionOut())
+      cc.callFunc(() => {
+        // Kéo hook hoàn toàn về rod
+        const rodTipWorld = this.getRodTipWorldPos();
+        const rodTipLocal =
+          this.hook.parent.convertToNodeSpaceAR(rodTipWorld);
+        const moveBack = cc.moveTo(0.6, rodTipLocal).easing(cc.easeBackIn());
+        this.hook.runAction(moveBack);
+
+        this.scheduleOnce(() => {
+          this.onMiniGameWin();
+          this.resetCycle();
+        }, 0.6);
+      })
     );
 
     this.updateCameraFollow(targetPos);
@@ -374,16 +405,20 @@ export default class GamePlayMgr extends cc.Component {
     if (this.hookedFish) {
       this.hookedFish.destroy();
       this.hookedFish = null;
-      this.popup.active = true;
-      this.popup
-        .getComponent(PopUp)
-        .setFishInfo(
-          this.hookedFishInfo.stats.call,
-          this.hookedFishInfo.stats.length,
-          this.hookedFishInfo.stats.value,
-          this.hookedFishInfo.stats.rarity,
-          this.hookedFishInfo.stats.id
-        );
+      let open = cc.callFunc(() => { this.popup.getComponent(PopUp).openPopup() });
+      let setInfo = cc.callFunc(() => {
+        this.popup
+          .getComponent(PopUp)
+          .setFishInfo(
+            this.hookedFishInfo.stats.call,
+            this.hookedFishInfo.stats.length,
+            this.hookedFishInfo.stats.value,
+            this.hookedFishInfo.stats.rarity,
+            this.hookedFishInfo.stats.id
+          )
+      });
+      let seq = cc.sequence(open, setInfo);
+      this.node.runAction(seq);
     }
 
     this.resetCycle();
@@ -413,6 +448,8 @@ export default class GamePlayMgr extends cc.Component {
 
     if (this.hookedFish) {
       this.hookedFish.parent = this.waterArea;
+      this.hookedFish.children[0].getComponent(sp.Skeleton).setAnimation(0, "swim", true);
+      cc.log("🐟 Released fish back to water", this.hookedFish);
       this.hookedFish = null;
     }
   }
@@ -435,7 +472,7 @@ export default class GamePlayMgr extends cc.Component {
     this.cameraNode.setPosition(0, 0);
 
     this.powerBar.active = false;
-    this.arrow.active = true;
+    this.angleNode.active = true;
     this.schedule(this.updateAngle, 0.02);
   }
 }

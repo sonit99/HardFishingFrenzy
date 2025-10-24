@@ -2,7 +2,7 @@
   "prefabs": {
     "pages": {
       "GamePlay": "prefabs/pages/GamePlay",
-      "Home": "prefabs/pages/Home"
+      "Lobby": "prefabs/pages/Lobby"
     },
     "popups": {
     },
@@ -12,8 +12,27 @@
   },
   "textures": {
   },
-  "sounds": {
+  "effects": {
+    "LaunchHook": "sounds/1",
+    "HookTouchWater": "sounds/2",
+    "FishBite": "sounds/3",
+    "PullLine": "sounds/4",
+    "FishFlounder": "sounds/5",
+    "LineSnap": "sounds/6",
+    "Click": "sounds/7",
+    "SmallWave": "sounds/8",
+    "BigWave": "sounds/9",
+    "RoaringWind": "sounds/10",
+    "Whale": "sounds/11",
+    "Rain": "sounds/12",
+    "Thunder": "sounds/13",
+    "Warning": "sounds/16",
+    "Success": "sounds/17",
+    "Sell": "sounds/18"
   },
-  "music": {
+  "BGM": {
+    "SunshineBeach": "sounds/14",
+    "AtlantisOcean": "sounds/15",
+    "Lobby": "sounds/19"
   }
 }

@@ -90,7 +90,7 @@ export default class RopeRenderer extends cc.Component {
       // 💧 Khi hook rơi hoặc chạm nước — dây rũ xuống (Y âm)
       else {
         offsetY = -sag * 1.3 * curve; // cong hướng xuống
-        cc.log("💧 Rũ dây:", offsetY);
+        // cc.log("💧 Rũ dây:", offsetY);
       }
 
       // Khi kéo hook lên, giảm độ cong cho thẳng dần

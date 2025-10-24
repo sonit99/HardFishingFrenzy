@@ -1,14 +1,7 @@
-// Learn TypeScript:
-//  - https://docs.cocos.com/creator/2.4/manual/en/scripting/typescript.html
-// Learn Attribute:
-//  - https://docs.cocos.com/creator/2.4/manual/en/scripting/reference/attributes.html
-// Learn life-cycle callbacks:
-//  - https://docs.cocos.com/creator/2.4/manual/en/scripting/life-cycle-callbacks.html
 
 import SoundUtil from "../utils/SoundUtil";
-import PopUp from "./gamePlay/PopUp";
 
-const {ccclass, property} = cc._decorator;
+const { ccclass, property } = cc._decorator;
 
 @ccclass
 export default class Lobby extends cc.Component {
@@ -38,28 +31,36 @@ export default class Lobby extends cc.Component {
     @property(cc.Label)
     lblcoin: cc.Label = null;
 
+    @property(cc.Node)
+    title: cc.Node = null;
+
     sashimi: number = 250;
     coin: number = 500;
     bait: number = 3;
+
+    isOpen: boolean = false;
     // LIFE-CYCLE CALLBACKS:
 
-    onLoad () {
+    onLoad() {
+        cc.view.setDesignResolutionSize(1080, 1920, cc.ResolutionPolicy.SHOW_ALL);
+        cc.view.resizeWithBrowserSize(true);
         Lobby.instance = this;
+        this.node.active = true;
         SoundUtil.instance.playMusic(2);
-        this.popup.active = false;
+        this.popup.active = this.isOpen = false;
         this.bg.on(cc.Node.EventType.TOUCH_END, function (event) {
             SoundUtil.instance.playEffect(6);
-            this.popup.active = true;
+            this.onClick();
         }, this);
 
         this.btnclose.on(cc.Node.EventType.TOUCH_START, function (event) {
             SoundUtil.instance.playEffect(6);
-            this.popup.active = false;
+            this.closePopup();
         }, this);
 
         this.btnno.on(cc.Node.EventType.TOUCH_START, function (event) {
             SoundUtil.instance.playEffect(6);
-            this.popup.active = false;
+            this.closePopup();
         }, this);
 
         this.btnyes.on(cc.Node.EventType.TOUCH_START, function (event) {
@@ -73,10 +74,43 @@ export default class Lobby extends cc.Component {
         }, this);
 
         this.updateLabels();
+        this.zoomInOut();
+    }
+
+    onClick() {
+        this.isOpen = !this.isOpen;
+        if (this.isOpen) {
+            this.openPopup();
+        } else {
+            this.closePopup();
+        }
+    }
+
+    openPopup() {
+        this.popup.active = true;
+        this.popup.opacity = 0;
+        this.popup.runAction(cc.fadeIn(0.25));
+    }
+
+    closePopup() {
+        let fadeOut = cc.fadeOut(0.25);
+        let deactivate = cc.callFunc(() => {
+            this.popup.active = false;
+            this.isOpen = false;
+        });
+        let seq = cc.sequence(fadeOut, deactivate);
+        this.popup.runAction(seq);
     }
 
     updateLabels() {
         this.lblsashimi.string = this.sashimi.toString();
         this.lblcoin.string = this.coin.toString();
+    }
+
+    zoomInOut() {
+        let scaleUp = cc.scaleTo(0.5, 1.1);
+        let scaleDown = cc.scaleTo(0.5, 1.0);
+        let seq = cc.sequence(scaleUp, scaleDown);
+        this.title.runAction(cc.repeatForever(seq));
     }
 }

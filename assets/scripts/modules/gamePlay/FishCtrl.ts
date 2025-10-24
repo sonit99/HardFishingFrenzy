@@ -36,7 +36,7 @@ export const FishStats = {
     [FishName.Ocean_Sunfish]: { id: 5, length: 300, value: 200, rarity: FishRarity.Rare, call: FishName.Ocean_Sunfish },
     [FishName.Great_Barracuda]: { id: 6, length: 150, value: 100, rarity: FishRarity.Rare, call: FishName.Great_Barracuda },
     [FishName.Bermuda_Moonfish]: { id: 7, length: 330, value: 400, rarity: FishRarity.Epic, call: FishName.Bermuda_Moonfish },
-    [FishName.Shadowfin_Marlin]: { id: 8, length: 340, value: 500, rarity: FishRarity.Epic, call: FishName.Shadowfin_Marlin },
+    // [FishName.Shadowfin_Marlin]: { id: 8, length: 340, value: 500, rarity: FishRarity.Epic, call: FishName.Shadowfin_Marlin },
     [FishName.Crystal_Seadragon]: { id: 9, length: 45, value: 120, rarity: FishRarity.Epic, call: FishName.Crystal_Seadragon },
     [FishName.Lionfish]: { id: 10, length: 50, value: 200, rarity: FishRarity.Epic, call: FishName.Lionfish },
     [FishName.Abyssal_Leviathan]: { id: 11, length: 3350, value: 800, rarity: FishRarity.Legend, call: FishName.Abyssal_Leviathan },
@@ -60,7 +60,6 @@ export const MapRate = {
 
 export interface FishInfo {
     node: cc.Node;
-    rarity: FishRarity;
     stats?: { id: number; length: number; value: number; rarity: FishRarity; call: string };
     area?: Area;
 }
@@ -72,7 +71,7 @@ export default class FishController extends cc.Component {
     private spawnRangeX: number = 3240;
     private spawnRangeY: number = 1056;
 
-    private swimSpeed: number = 50; // tốc độ bơi px/s
+    private swimSpeed: number = 100; // tốc độ bơi px/s
     private swimAmplitude: number = 40; // biên độ dao động lên xuống
     private fishSwimData: Map<cc.Node, { dir: number, baseY: number }> = new Map();
 
@@ -91,6 +90,7 @@ export default class FishController extends cc.Component {
 
     spawnInitialFish() {
         // Mỗi khu vực spawn số cá khác nhau (tuỳ bạn chỉnh)
+        // Sẽ tạo thêm function tính %
         const areaFishCount = {
             [Area.Near]: 8,
             [Area.MEDIUM]: 10,
@@ -104,6 +104,7 @@ export default class FishController extends cc.Component {
 
         cc.log(`🎣 Total spawned fishes: ${this.fishes.length}`);
     }
+
 
 
     onHookInWater(hook: cc.Node) {
@@ -150,7 +151,6 @@ export default class FishController extends cc.Component {
     }
 
     onFishBite(fish: FishInfo) {
-        cc.log(`🎯 ${fish.rarity} fish bit the hook!`);
         this.node.emit("FishBitten", fish);
         SoundUtil.instance.playEffect(2);
         SoundUtil.instance.playEffect(4);
@@ -264,7 +264,7 @@ export default class FishController extends cc.Component {
             fish.scaleX = Math.random() < 0.5 ? 1 : -1;
 
             // Thêm vào danh sách
-            this.fishes.push({ node: fish, rarity, stats, area });
+            this.fishes.push({ node: fish, stats, area });
 
             // Ghi nhớ hướng bơi
             const dir = Math.random() < 0.5 ? -1 : 1;
