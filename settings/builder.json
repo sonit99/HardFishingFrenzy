@@ -2,9 +2,7 @@
   "title": "Main",
   "packageName": "org.cocos2d.demo",
   "startScene": "69cc56ff-5bce-429d-b830-e6e3467b9439",
-  "excludeScenes": [
-    "69cc56ff-5bce-429d-b830-e6e3467b9439"
-  ],
+  "excludeScenes": [],
   "orientation": {
     "landscapeRight": true,
     "landscapeLeft": true,
@@ -14,7 +12,7 @@
   "webOrientation": "portrait",
   "inlineSpriteFrames": true,
   "inlineSpriteFrames_native": true,
-  "mainCompressionType": "merge_all_json",
+  "mainCompressionType": "default",
   "mainIsRemote": false,
   "optimizeHotUpdate": false,
   "md5Cache": true,
