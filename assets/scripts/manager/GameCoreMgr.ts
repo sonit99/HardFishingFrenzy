@@ -1,20 +1,11 @@
 import { DataManager } from "../../scripts/manager/DataMgr";
-import LoadingLayer from "../modules/loadingLayer";
 import { LanguageManager } from "./LanguageMgr";
-import ScreenManager from "./ScreenMgr";
-import { UITransition } from "./UIMgr";
 
 const { ccclass, property } = cc._decorator;
 
 @ccclass
 export default class GameCoreManager extends cc.Component {
   public static instance: GameCoreManager = null;
-
-  // @property(cc.Font)
-  // listFontCommon: cc.Font = null;
-
-  // @property(cc.Font)
-  // listFontLanguage: Array<cc.Font> = [];
 
   // @property(cc.Node)
   // mainLoadingLayer: LoadingLayer = null;
@@ -36,7 +27,6 @@ export default class GameCoreManager extends cc.Component {
     LanguageManager.updateLang();
   }
 
-
   async start(): Promise<void> {
     await DataManager.instance.loadAll();
     cc.resources.preloadDir(
@@ -55,7 +45,6 @@ export default class GameCoreManager extends cc.Component {
           return;
         }
         console.log("Load xong toàn bộ:", assets.length);
-        // ScreenManager.openPage(DataManager.instance.getPrefabPath("GamePlay"),UITransition.FADE)
       }
     );
   }
@@ -97,4 +86,42 @@ export default class GameCoreManager extends cc.Component {
   //     .getComponent(LoadingLayer)
   //     .changeProgress(completedCount / totalCount);
   // }
+
+  activateGamePlay() {
+    this._nBG.children[2].active = false; // disable lobby bg
+    this._nBG.children[0].active = true;
+    this._nBG.children[1].active = true;
+    this._nBG.children[0].getComponent(cc.Widget).updateAlignment();
+    this._nBG.children[1].getComponent(cc.Widget).updateAlignment();
+    this._nLobby.active = false;
+    this._nGamePlay.active = true;
+  }
+
+  lobbyBgEvent(callFunc: Function) {
+    this._nBG.children[2].on(cc.Node.EventType.TOUCH_START, callFunc, this);
+  }
+
+  getCameraPos(): cc.Vec2 {
+    return this._nCamera.getPosition();
+  }
+
+  getCameraWorldPos(): cc.Vec2 {
+    return this._nCamera.convertToWorldSpaceAR(cc.v2(0, 0));
+  }
+
+  setCameraPosition(pos: cc.Vec2) {
+    this._nCamera.setPosition(pos);
+  }
+
+  updateCameraFollow(targetHookPos: cc.Vec2) {
+    if (!this._nCamera) return;
+
+    // 🎯 Chỉ follow ngang theo hook
+    const currentCamPos = this._nCamera.getPosition();
+
+    // Vị trí camera mục tiêu chỉ thay đổi X, giữ nguyên Y và Z hiện tại
+    const targetCamX = cc.misc.lerp(currentCamPos.x, targetHookPos.x, 1);
+
+    this._nCamera.setPosition(targetCamX, currentCamPos.y);
+  }
 }

@@ -46,25 +46,7 @@ export class DataManager {
 
     // ====== API truy xuất dữ liệu ======
     // ====== Fishes ====== 
-    public getFishName(key: string): any {
-        if (!this._fishes) return null;
-        return this._fishes[key] || null;
-    }
 
-    public getAllObjects(): any {
-        if (!this._fishes) return null;
-        return this._fishes;
-    }
-
-    // ====== Characters ====== 
-    public getCharacterById(id: number): any {
-        if (!this._characters) return null;
-        return this._characters[id] || null;
-    }
-
-    public getAllCharacters(): any {
-        return this._characters;
-    }
 
     // ========== Paths ========== 
     public getPrefabPath(name: string) {
@@ -94,18 +76,37 @@ export class DataManager {
             });
         });
     }
-    // ====== Sounds, Textures, Music ======
+    // ====== Sounds ======
     public getSoundPath(name: string) {
-        return this._paths.sounds[name];
+        const groups = this._paths.sounds;
+        for (const type in groups) {
+            if (groups[type][name]) {
+                return groups[type][name];
+            }
+        }
+        return null;
     }
 
+        public getClip(name: string): Promise<cc.AudioClip> {
+        return new Promise((resolve, reject) => {
+            const path = this.getSoundPath(name);
+            if (!path) {
+                reject(new Error(`Clip "${name}" not found in path config`));
+                return;
+            }
+
+            cc.resources.load(path, cc.AudioClip, (err, clip: cc.AudioClip) => {
+                if (err) {
+                    reject(err);
+                    return;
+                }
+                resolve(clip);
+            });
+        });
+    }
+
+    // ====== Textures ======
     public getTexturePath(name: string) {
         return this._paths.textures[name];
     }
-
-    public getMusicPath(name: string) {
-        return this._paths.music[name];
-    }
-
-
 }

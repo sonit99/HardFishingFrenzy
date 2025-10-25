@@ -1,4 +1,4 @@
-import ObjectPool from "../modules/ObjectPool";
+import ObjectPool from "../manager/ObjectPool";
 import { TableViewCell } from "./Cell";
 
 const { ccclass, property } = cc._decorator;

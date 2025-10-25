@@ -1,28 +1,49 @@
-// Learn TypeScript:
-//  - https://docs.cocos.com/creator/2.4/manual/en/scripting/typescript.html
-// Learn Attribute:
-//  - https://docs.cocos.com/creator/2.4/manual/en/scripting/reference/attributes.html
-// Learn life-cycle callbacks:
-//  - https://docs.cocos.com/creator/2.4/manual/en/scripting/life-cycle-callbacks.html
 
 const {ccclass, property} = cc._decorator;
 
 @ccclass
-export default class NewClass extends cc.Component {
+export default class UICtrl extends cc.Component {
+    public static instance: UICtrl = null;
 
     @property(cc.Label)
-    label: cc.Label = null;
+    lblSashimi: cc.Label = null;
 
-    @property
-    text: string = 'hello';
+    @property(cc.Label)
+    lblCoin: cc.Label = null;
+    
+    private _sashimi: number = 250;
+
+    getSashimi(): number {
+        return this._sashimi;
+    }
+
+    updateSashimi(amount: number) {
+        this._sashimi += amount;
+        this.updateLabels();
+    }
+
+    private _coin: number = 500;
+
+    getCoin(): number {
+        return this._coin;
+    }
+
+    updateCoin(amount: number) {
+        this._coin += amount;
+        this.updateLabels();
+    }
+
+    private _bait: number = 3;
 
     // LIFE-CYCLE CALLBACKS:
 
-    // onLoad () {}
-
-    start () {
-
+    onLoad () {
+        UICtrl.instance = this;
     }
+    
 
-    // update (dt) {}
+    updateLabels() {
+        this.lblSashimi.string = this._sashimi.toString();
+        this.lblCoin.string = this._coin.toString();
+    }
 }

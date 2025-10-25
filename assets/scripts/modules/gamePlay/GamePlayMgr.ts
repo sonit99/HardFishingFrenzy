@@ -1,5 +1,6 @@
 import { DataManager } from "../../manager/DataMgr";
-import SoundUtil from "../../utils/SoundUtil";
+import GameCoreManager from "../../manager/GameCoreMgr";
+import SoundUtil, { BGM, SFX } from "../../utils/SoundUtil";
 import FishCtrl, { FishInfo } from "./FishCtrl";
 import PopUp from "./PopUp";
 
@@ -40,9 +41,6 @@ export default class GamePlayMgr extends cc.Component {
   @property(sp.Skeleton)
   characterSpine: sp.Skeleton = null;
 
-  @property(cc.Node)
-  cameraNode: cc.Node = null;
-
   private maxPower: number = 300;
   private gravity: number = -600;
   private isCharging: boolean = false;
@@ -52,7 +50,7 @@ export default class GamePlayMgr extends cc.Component {
   private hookVelocity: cc.Vec2 = cc.v2(0, 0);
 
   private hookInitialPos: cc.Vec2 = cc.v2();
-  private cameraOffset: cc.Vec2 = cc.v2();
+  // private cameraOffset: cc.Vec2 = cc.v2();
 
   private hookedFish: cc.Node = null;
   private hookedFishInfo: FishInfo = null;
@@ -77,20 +75,15 @@ export default class GamePlayMgr extends cc.Component {
 
   start() {
     this.node.getChildByName("Player").active = true;
-    SoundUtil.instance.playMusic(1);
-    SoundUtil.instance.playEffectLoop(15);
+    SoundUtil.instance.playBGM(BGM.AtlantisOcean);
+    SoundUtil.instance.playSFX(SFX.BigWave, true);
     this.characterSpine.setAnimation(0, "stand", true);
     this.schedule(this.updateAngle, 0.02);
 
-    // this.cameraNode = this.cameraNode || cc.find("Canvas/Main Camera");
-    cc.log("cameraNode", this.cameraNode);
-    if (this.cameraNode) {
-      this.cameraNode.active = true;
-    }
     // Camera offset
-    const camWorld = this.cameraNode.convertToWorldSpaceAR(cc.v2(0, 0));
-    const hookWorld = this.hook.convertToWorldSpaceAR(cc.v2(0, 0));
-    this.cameraOffset = cc.v2(camWorld.x - hookWorld.x - 200, 0);
+    // const camWorld = GameCoreManager.instance.getCameraWorldPos();
+    // const hookWorld = this.hook.convertToWorldSpaceAR(cc.v2(0, 0));
+    // this.cameraOffset = cc.v2(camWorld.x - hookWorld.x - 200, 0);
   }
 
   updateAngle() {
@@ -108,7 +101,6 @@ export default class GamePlayMgr extends cc.Component {
 
   onTouchStart() {
     if (this.isFlying) return;
-    SoundUtil.instance.playEffect(0);
     this.unschedule(this.updateAngle);
     this.powerBar.active = true;
     this.powerBar.getComponent(cc.ProgressBar).progress = 0;
@@ -140,6 +132,8 @@ export default class GamePlayMgr extends cc.Component {
   }
 
   launchHook() {
+    SoundUtil.instance.playSFX(SFX.LaunchHook);
+
     this.characterSpine.setAnimation(0, "thrown", false);
     this.scheduleOnce(() => {
       this.characterSpine.setAnimation(0, "stand", true);
@@ -182,14 +176,9 @@ export default class GamePlayMgr extends cc.Component {
       this.hook.angle = cc.misc.lerp(this.hook.angle, angle, 0.2); // quay mượt
 
       // Camera follow ngang theo hook, không follow Y
-      const currentCamPos = this.cameraNode.getPosition();
       const hookWorld = this.hook.convertToWorldSpaceAR(cc.v2(0, 0));
-      const targetCamX = cc.misc.lerp(
-        currentCamPos.x,
-        hookWorld.x + this.cameraOffset.x,
-        0.1
-      );
-      this.cameraNode.setPosition(targetCamX, currentCamPos.y);
+      GameCoreManager.instance.updateCameraFollow(hookWorld);
+
 
       // Va chạm nước
       if (this.hook.y <= this.waterArea.y + this.waterArea.height / 2) {
@@ -200,7 +189,7 @@ export default class GamePlayMgr extends cc.Component {
   }
 
   hookHitWater() {
-    SoundUtil.instance.playEffect(1, 1.0);
+    SoundUtil.instance.playSFX(SFX.HookTouchWater, false, 1.0);
     this.isFlying = false;
     if (this.ropeNode) {
       this.ropeNode.getComponent("RopeRenderer").setFlyingState(false);
@@ -331,30 +320,20 @@ export default class GamePlayMgr extends cc.Component {
     // this.powerBar.getComponent(cc.ProgressBar).progress = 0;
   }
 
-  private updateCameraFollow(targetHookPos: cc.Vec2) {
-    if (!this.cameraNode) return;
 
-    // 🎯 Chỉ follow ngang theo hook
-    const currentCamPos = this.cameraNode.getPosition();
-
-    // Vị trí camera mục tiêu chỉ thay đổi X, giữ nguyên Y và Z hiện tại
-    const targetCamX = cc.misc.lerp(currentCamPos.x, targetHookPos.x, 1);
-
-    this.cameraNode.setPosition(targetCamX, currentCamPos.y);
-  }
 
   private onMiniGameMiss(failRatio: number) {
     cc.log(`🎯 MiniGame miss: ${failRatio}`);
-    SoundUtil.instance.playEffect(5);
+    SoundUtil.instance.playSFX(SFX.LineSnap);
     if (failRatio === 0.8) {
-      SoundUtil.instance.playEffect(7);
+      SoundUtil.instance.playSFX(SFX.Warning);
     }
     this.powerBar.getComponent(cc.ProgressBar).progress = failRatio;
   }
 
   private onMiniGameProgress(ratio: number) {
     cc.log(`🎯 MiniGame progress: ${ratio}`);
-    SoundUtil.instance.playEffect(3);
+    SoundUtil.instance.playSFX(SFX.PullLine);
     this.characterSpine.setAnimation(0, "fishing", false);
     this.scheduleOnce(() => {
       this.characterSpine.setAnimation(0, "stand", true);
@@ -394,13 +373,13 @@ export default class GamePlayMgr extends cc.Component {
       })
     );
 
-    this.updateCameraFollow(targetPos);
+    GameCoreManager.instance.updateCameraFollow(targetPos);
   }
 
   private onMiniGameWin() {
     cc.log("🏆 Fish successfully caught!");
-    SoundUtil.instance.playEffect(8);
-    SoundUtil.instance.playEffect(9);
+    SoundUtil.instance.playSFX(SFX.Success1);
+    SoundUtil.instance.playSFX(SFX.Success2);
 
     if (this.hookedFish) {
       this.hookedFish.destroy();
@@ -469,7 +448,7 @@ export default class GamePlayMgr extends cc.Component {
     this.isFlying = false;
     this.hookVelocity = cc.v2(0, 0);
     this.hookedFish = null;
-    this.cameraNode.setPosition(0, 0);
+    GameCoreManager.instance.setCameraPosition(cc.v2(0, 0));
 
     this.powerBar.active = false;
     this.angleNode.active = true;

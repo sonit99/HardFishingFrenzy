@@ -12,7 +12,7 @@
   },
   "textures": {
   },
-  "effects": {
+  "SFX": {
     "LaunchHook": "sounds/1",
     "HookTouchWater": "sounds/2",
     "FishBite": "sounds/3",
@@ -27,7 +27,8 @@
     "Rain": "sounds/12",
     "Thunder": "sounds/13",
     "Warning": "sounds/16",
-    "Success": "sounds/17",
+    "Success1": "sounds/17_1",
+    "Success2": "sounds/17_2",
     "Sell": "sounds/18"
   },
   "BGM": {
