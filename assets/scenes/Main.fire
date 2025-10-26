@@ -2928,7 +2928,7 @@
         0.7071067811865475,
         0.7071067811865476,
         1,
-        -1,
+        1,
         1
       ]
     },
@@ -2990,7 +2990,7 @@
         0,
         1,
         1,
-        1,
+        -1,
         1
       ]
     },
@@ -3034,7 +3034,7 @@
       "y": 0.5
     },
     "_fillStart": 0,
-    "_fillRange": 1,
+    "_fillRange": 0.10000000000000003,
     "_isTrimmedMode": true,
     "_atlas": null,
     "_id": "31hYvGDh1E76b1C4Z/TRTx"
@@ -3178,7 +3178,7 @@
       "__id__": 65
     },
     "_N$mode": 2,
-    "_N$progress": 1,
+    "_N$progress": 0.10000000000000003,
     "_N$reverse": false,
     "_id": "22yNbyYbpNFKVlDgcbxLfC"
   },

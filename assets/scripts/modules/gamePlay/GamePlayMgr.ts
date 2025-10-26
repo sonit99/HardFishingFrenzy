@@ -226,7 +226,7 @@ export default class GamePlayMgr extends cc.Component {
 
       // Va chạm nước
       const waterSurfaceY = this.waterArea.y + this.waterArea.height / 2;
-      if (this.hook.y <= waterSurfaceY) {
+      if (this.hook.y < waterSurfaceY - 100) {
         // Giữ nguyên vị trí hiện tại (không gán lại Y)
         this.hook.stopAllActions();
         this.hookHitWater();
@@ -352,16 +352,16 @@ export default class GamePlayMgr extends cc.Component {
         difficulty = 1;
         break;
       case "uncommon":
-        difficulty = 1.2;
+        difficulty = 1.3;
         break;
       case "rare":
-        difficulty = 1.4;
+        difficulty = 1.6;
         break;
       case "epic":
-        difficulty = 1.7;
+        difficulty = 2.0;
         break;
       case "legend":
-        difficulty = 2.0;
+        difficulty = 2.5;
         break;
     }
     // 🧩 Clone minigame UI và gắn vào cá
@@ -463,7 +463,6 @@ export default class GamePlayMgr extends cc.Component {
 
   private onMiniGameWin() {
     cc.log("🏆 Fish successfully caught!");
-    SoundUtil.instance.playSFX(SFX.Success1);
     SoundUtil.instance.playSFX(SFX.Success2);
 
     if (this.hookedFish) {
@@ -493,6 +492,7 @@ export default class GamePlayMgr extends cc.Component {
             );
         });
         let seq = cc.sequence(open, setInfo);
+        SoundUtil.instance.playSFX(SFX.Success1);
         this.node.runAction(seq);
         this.resetCycle();
       }, 3);
