@@ -160,55 +160,49 @@ export default class GamePlayMgr extends cc.Component {
 
   update(dt: number) {
     if (!this.isFlying) {
-      if (this.isInWater) {
-        const rodTipWorld = this.getRodTipWorldPos();
-        const rodTipLocal = this.hook.parent.convertToNodeSpaceAR(rodTipWorld);
-
-        // 🔽 Giảm dần độ sâu
-        const targetRadius = Math.max(
-          this.circularRadius * dt,
-          this.waterTargetDepth
-        );
-        this.circularRadius = cc.misc.lerp(
-          this.circularRadius,
-          targetRadius,
-          0.05
-        );
-
-        // 🔁 Di chuyển theo cung tròn quanh tip
-        this.circularAngle += 0.1 * dt; // tốc độ quay nhẹ quanh tip
-        const newX =
-          rodTipLocal.x + Math.cos(this.circularAngle) * this.circularRadius;
-        const newY =
-          rodTipLocal.y - Math.sin(this.circularAngle) * this.circularRadius;
-
-        const current = this.hook.getPosition();
-        const target = cc.v2(newX, newY);
-        this.hook.setPosition(current.lerp(target, 0.05));
-
-        // 🧭 Cập nhật góc xoay hook
-        // const dir = target.sub(current).normalize();
-        // const angle = cc.misc.radiansToDegrees(Math.atan2(dir.y, dir.x)) - 90;
-        // this.hook.angle = cc.misc.lerp(this.hook.angle, angle, 0.05);
-
-        const currentAngle = this.hook.angle;
-        const targetAngle = 90; // hướng thẳng xuống
-        cc.tween(this.hook)
-          .to(0.5, { angle: targetAngle }, { easing: "quadOut" })
-          .start();
-
-        // 🎣 Khi rơi đủ sâu → gọi FishCtrl
-        if (
-          this.hook.x <= rodTipLocal.x ||
-          this.hook.y <= rodTipLocal.y - this.waterTargetDepth
-        ) {
-          this.isInWater = false;
-          cc.log("🐟 Hook reached stable underwater position");
-          const fishCtrl = this.waterArea.getComponent(FishCtrl);
-          if (fishCtrl) fishCtrl.onHookInWater(this.hook);
-        }
-        // return; // tránh chạy phần flying phía dưới
-      }
+      // if (this.isInWater) {
+      //   const rodTipWorld = this.getRodTipWorldPos();
+      //   const rodTipLocal = this.hook.parent.convertToNodeSpaceAR(rodTipWorld);
+      //   // 🔽 Giảm dần độ sâu
+      //   const targetRadius = Math.max(
+      //     this.circularRadius * dt,
+      //     this.waterTargetDepth
+      //   );
+      //   this.circularRadius = cc.misc.lerp(
+      //     this.circularRadius,
+      //     targetRadius,
+      //     0.05
+      //   );
+      //   // 🔁 Di chuyển theo cung tròn quanh tip
+      //   this.circularAngle += 0.1 * dt; // tốc độ quay nhẹ quanh tip
+      //   const newX =
+      //     rodTipLocal.x + Math.cos(this.circularAngle) * this.circularRadius;
+      //   const newY =
+      //     rodTipLocal.y - Math.sin(this.circularAngle) * this.circularRadius;
+      //   const current = this.hook.getPosition();
+      //   const target = cc.v2(newX, newY);
+      //   this.hook.setPosition(current.lerp(target, 0.05));
+      //   // 🧭 Cập nhật góc xoay hook
+      //   // const dir = target.sub(current).normalize();
+      //   // const angle = cc.misc.radiansToDegrees(Math.atan2(dir.y, dir.x)) - 90;
+      //   // this.hook.angle = cc.misc.lerp(this.hook.angle, angle, 0.05);
+      //   const currentAngle = this.hook.angle;
+      //   const targetAngle = 90; // hướng thẳng xuống
+      //   cc.tween(this.hook)
+      //     .to(0.5, { angle: targetAngle }, { easing: "quadOut" })
+      //     .start();
+      //   // 🎣 Khi rơi đủ sâu → gọi FishCtrl
+      //   if (
+      //     this.hook.x <= rodTipLocal.x ||
+      //     this.hook.y <= rodTipLocal.y - this.waterTargetDepth
+      //   ) {
+      //     this.isInWater = false;
+      //     cc.log("🐟 Hook reached stable underwater position");
+      //     const fishCtrl = this.waterArea.getComponent(FishCtrl);
+      //     if (fishCtrl) fishCtrl.onHookInWater(this.hook);
+      //   }
+      //   // return; // tránh chạy phần flying phía dưới
+      // }
     } else {
       // Hook đang bay
       this.hookVelocity.y +=
@@ -249,35 +243,36 @@ export default class GamePlayMgr extends cc.Component {
 
     this.hookVelocity = cc.v2(0, 0);
 
+    // ✅ Tính tâm là tip cần câu (local space)
+    const rodTipWorld = this.getRodTipWorldPos();
+    const rodTipLocal = this.hook.parent.convertToNodeSpaceAR(rodTipWorld);
+
     // 1️⃣ Hook chìm xuống
-    const sinkDepth = 200; // chiều sâu tính từ mặt nước
-    const sinkTime = 1; // thời gian chìm
+    const sinkDepth = 1000; // chiều sâu tính từ mặt nước
+    const sinkTime = 5; // thời gian chìm
     const targetY = this.hook.y - sinkDepth;
+    cc.log(this.hook.x - rodTipLocal.x, sinkDepth);
+    const targetX =
+      this.hook.x - Math.min(this.hook.x - rodTipLocal.x, sinkDepth); // chìm kèm trôi nhẹ về bên trái
+
+    const fishCtrl = this.waterArea.getComponent(FishCtrl);
 
     const sinkAction = cc.sequence(
-      cc
-        .moveTo(sinkTime, cc.v2(this.hook.x, targetY)),
-        // .easing(cc.easeCubicActionOut()),
+      cc.moveTo(sinkTime, cc.v2(targetX, Math.min(targetX, targetY))),
+      // .easing(cc.easeCubicActionOut()),
       cc.callFunc(() => {
         cc.log("💧 Hook reached depth, waiting for fish...");
         // 2️⃣ Khi hook dừng, gọi FishController
-        const fishCtrl = this.waterArea.getComponent(FishCtrl);
         if (this.waterArea && fishCtrl) {
-          // fishCtrl.onHookInWater(this.hook);
-          this.isInWater = true;
-          // ✅ Tính vị trí bắt đầu (hook hiện tại)
-          const hookPos = this.hook.getPosition();
+          // this.isInWater = true;
+          // // ✅ Tính vị trí bắt đầu (hook hiện tại)
+          // const hookPos = this.hook.getPosition();
 
-          // ✅ Tính tâm là tip cần câu (local space)
-          const rodTipWorld = this.getRodTipWorldPos();
-          const rodTipLocal =
-            this.hook.parent.convertToNodeSpaceAR(rodTipWorld);
-
-          this.circularRadius = hookPos.sub(rodTipLocal).mag();
-          this.circularAngle = Math.atan2(
-            hookPos.y - rodTipLocal.y,
-            hookPos.x - rodTipLocal.x
-          );
+          // this.circularRadius = hookPos.sub(rodTipLocal).mag();
+          // this.circularAngle = Math.atan2(
+          //   hookPos.y - rodTipLocal.y,
+          //   hookPos.x - rodTipLocal.x
+          // );
 
           cc.log("💧 Hook entered water, starting slow sink and curve move...");
         } else {
@@ -286,6 +281,22 @@ export default class GamePlayMgr extends cc.Component {
       })
     );
     this.hook.runAction(sinkAction);
+
+    this.scheduleOnce(() => {
+      fishCtrl.onHookInWater(this.hook);
+    }, sinkTime / 2);
+
+    this.schedule(
+      () => {
+        const hookWorld = this.hook.convertToWorldSpaceAR(cc.v2(0, 0));
+        GameCoreManager.instance.updateCameraFollow(
+          hookWorld.add(this.cameraOffset)
+        );
+      },
+      0.01,
+      sinkTime / 0.01,
+      0
+    );
   }
 
   private getRodTipWorldPos(): cc.Vec2 {

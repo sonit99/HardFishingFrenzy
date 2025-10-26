@@ -23,6 +23,9 @@ export default class Fish extends cc.Component {
   roamArea: cc.Rect = cc.rect(-1500, 0, 1000, 500);
   angle: number = 0;
   targetPos: cc.Vec2 = cc.v2(0, 0);
+  area: Area = Area.Near;
+
+  isHooked: boolean = false;
 
   stats: IFishStats | null = null;
 
@@ -31,6 +34,9 @@ export default class Fish extends cc.Component {
   }
 
   update(dt: number) {
+    if (this.isHooked) {
+      return;
+    }
     const dir = this.targetPos.sub(this.node.getPosition());
     const dist = dir.mag();
 

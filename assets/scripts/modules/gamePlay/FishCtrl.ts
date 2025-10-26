@@ -188,10 +188,10 @@ export default class FishController extends cc.Component {
     // Mỗi khu vực spawn số cá khác nhau (tuỳ bạn chỉnh)
     // Sẽ tạo thêm function tính %
     const areaFishCount = {
-      [Area.Near]: 2,
-      [Area.MEDIUM]: 0,
-      [Area.FAR]: 0,
-      [Area.FARTHEST]: 0,
+      [Area.Near]: 10,
+      [Area.MEDIUM]: 10,
+      [Area.FAR]: 10,
+      [Area.FARTHEST]: 10,
     };
 
     for (const area of Object.values(Area).filter(
@@ -244,10 +244,14 @@ export default class FishController extends cc.Component {
     ) {
       nearest.node.scaleX = -nearest.node.scaleX;
     }
+    nearest.node.getComponent(Fish).isHooked = true;
     const swim = cc.moveTo(1, cc.v2(0, -30)).easing(cc.easeCubicActionInOut());
     nearest.node.runAction(swim);
 
-    this.scheduleOnce(() => this.onFishBite(nearest), 1);
+    this.scheduleOnce(() => {
+      this.onFishBite(nearest);
+      hook.stopAllActions();
+    }, 1);
   }
 
   onFishBite(fish: FishInfo) {
@@ -329,6 +333,25 @@ export default class FishController extends cc.Component {
 
       // tạo script behaviour cho nó
       const behaviour = fish.addComponent(Fish);
+      behaviour.stats = stats;
+      behaviour.area = area;
+    switch (area) {
+      case Area.Near:
+        behaviour.roamArea = cc.rect(-1500, 0, 1000, 500);
+        break;
+        case Area.MEDIUM:
+        behaviour.roamArea = cc.rect(-500, 0, 1000, 500);
+        break;
+        case Area.FAR:
+        behaviour.roamArea = cc.rect(500, 0, 1000, 500);
+        break;
+        case Area.FARTHEST:
+        behaviour.roamArea = cc.rect(1500, 0, 1000, 500);
+        break;
+      default:
+        behaviour.roamArea = cc.rect(-1500, 0, 1000, 500);
+        break;
+    }
 
       // Thêm vào danh sách
       this.fishes.push({ node: fish, stats, area });
