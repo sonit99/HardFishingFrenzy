@@ -5,8 +5,9 @@
 // Learn life-cycle callbacks:
 //  - https://docs.cocos.com/creator/2.4/manual/en/scripting/life-cycle-callbacks.html
 
-import SoundUtil from "../../utils/SoundUtil";
+import SoundUtil, { SFX } from "../../utils/SoundUtil";
 import Lobby from "../Lobby";
+import UICtrl from "../UICtrl";
 import { FishRarity } from "./FishCtrl";
 
 const {ccclass, property} = cc._decorator;
@@ -79,15 +80,14 @@ export default class PopUp extends cc.Component {
     }
 
     private onClose() {
-        SoundUtil.instance.playEffect(6);
+        SoundUtil.instance.playSFX(SFX.Click);
         this.closePopup();
     }
 
     private onSell() {
         cc.log("💰 Fish sold!");
-        SoundUtil.instance.playEffect(10);
-        Lobby.instance.coin += parseInt(this.sellPrice.string.replace("x", ""));
-        Lobby.instance.updateLabels();
+        SoundUtil.instance.playSFX(SFX.Sell);
+        UICtrl.instance.updateCoin(parseFloat(this.sellPrice.string.slice(1)));
         this.closePopup();
     }
 

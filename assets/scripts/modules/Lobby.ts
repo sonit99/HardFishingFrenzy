@@ -6,7 +6,6 @@ const { ccclass, property } = cc._decorator;
 
 @ccclass
 export default class Lobby extends cc.Component {
-
   @property(cc.Node)
   popup: cc.Node = null;
 
@@ -24,8 +23,18 @@ export default class Lobby extends cc.Component {
   // LIFE-CYCLE CALLBACKS:
 
   onLoad() {
+    SoundUtil.instance.playBGM(BGM.Lobby);
     this.popup.active = this.isOpen = false;
 
+    this.node.on(
+      cc.Node.EventType.TOUCH_START,
+      function () {
+        cc.log("Lobby background event triggered.");
+        SoundUtil.instance.playSFX(SFX.Click);
+        this.onClick();
+      },
+      this
+    );
     this.btnclose.on(
       cc.Node.EventType.TOUCH_START,
       function () {
@@ -58,10 +67,6 @@ export default class Lobby extends cc.Component {
 
   onStart() {
     SoundUtil.instance.playBGM(BGM.Lobby);
-    GameCoreManager.instance.lobbyBgEvent(function () {
-      SoundUtil.instance.playSFX(SFX.Click);
-      this.onClick();
-    });
   }
 
   onDestroy() {

@@ -85,6 +85,9 @@
       },
       {
         "__id__": 83
+      },
+      {
+        "__id__": 84
       }
     ],
     "_prefab": null,
@@ -153,7 +156,7 @@
         "__id__": 10
       }
     ],
-    "_active": true,
+    "_active": false,
     "_components": [
       {
         "__id__": 18
@@ -3447,6 +3450,9 @@
     "lblCoin": {
       "__id__": 45
     },
+    "powerBar": {
+      "__id__": 63
+    },
     "_id": "ca7ko78p1ABIIE6e4fLIFH"
   },
   {
@@ -3521,6 +3527,16 @@
     },
     "_enabled": true,
     "_id": "c7hPhvB/tNIpO+3Fh5nQBW"
+  },
+  {
+    "__type__": "4cdf8yI94FKFZukJ02XLER6",
+    "_name": "",
+    "_objFlags": 0,
+    "node": {
+      "__id__": 2
+    },
+    "_enabled": true,
+    "_id": "e1Xm/4M9tEc56QzFgPn9DI"
   },
   {
     "__type__": "cc.Canvas",

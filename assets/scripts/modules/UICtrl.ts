@@ -10,6 +10,9 @@ export default class UICtrl extends cc.Component {
 
     @property(cc.Label)
     lblCoin: cc.Label = null;
+
+    @property(cc.Node)
+    powerBar: cc.Node = null;
     
     private _sashimi: number = 250;
 
@@ -45,5 +48,13 @@ export default class UICtrl extends cc.Component {
     updateLabels() {
         this.lblSashimi.string = this._sashimi.toString();
         this.lblCoin.string = this._coin.toString();
+    }
+
+    activeatePowerBar(bool: boolean) {
+        this.powerBar.active = bool;
+    }
+
+    updatePowerBarProgress(progress: number = 0) {
+        this.powerBar.getComponent(cc.ProgressBar).progress = progress;
     }
 }

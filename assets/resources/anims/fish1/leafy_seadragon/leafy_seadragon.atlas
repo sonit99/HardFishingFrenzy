@@ -1,0 +1,13 @@
+
+leafy_seadragon.png
+size: 80,104
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+Layer 1
+  rotate: false
+  xy: 0, 0
+  size: 79, 102
+  orig: 79, 102
+  offset: 0, 0
+  index: -1

@@ -1,0 +1,41 @@
+
+Bermuda Moonfish.png
+size: 264,100
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+fish_body
+  rotate: false
+  xy: 0, 0
+  size: 154, 100
+  orig: 157, 102
+  offset: 1, 1
+  index: -1
+vay1
+  rotate: true
+  xy: 214, 13
+  size: 31, 36
+  orig: 31, 36
+  offset: 0, 0
+  index: -1
+vay2
+  rotate: false
+  xy: 214, 72
+  size: 50, 28
+  orig: 50, 28
+  offset: 0, 0
+  index: -1
+vay3
+  rotate: false
+  xy: 214, 46
+  size: 46, 24
+  orig: 46, 24
+  offset: 0, 0
+  index: -1
+vay4
+  rotate: false
+  xy: 156, 9
+  size: 56, 91
+  orig: 56, 91
+  offset: 0, 0
+  index: -1

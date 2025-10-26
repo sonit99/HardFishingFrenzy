@@ -1,0 +1,55 @@
+
+abyssal_leviathan.png
+size: 340,724
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+fish_body
+  rotate: true
+  xy: 0, 122
+  size: 602, 215
+  orig: 602, 226
+  offset: 0, 11
+  index: -1
+vay1
+  rotate: true
+  xy: 217, 34
+  size: 194, 108
+  orig: 194, 108
+  offset: 0, 0
+  index: -1
+vay2
+  rotate: false
+  xy: 196, 0
+  size: 94, 32
+  orig: 94, 32
+  offset: 0, 0
+  index: -1
+vay3
+  rotate: false
+  xy: 0, 12
+  size: 194, 108
+  orig: 194, 108
+  offset: 0, 0
+  index: -1
+vayduoi1
+  rotate: true
+  xy: 217, 230
+  size: 143, 113
+  orig: 143, 113
+  offset: 0, 0
+  index: -1
+vayduoi2
+  rotate: true
+  xy: 217, 538
+  size: 186, 120
+  orig: 186, 120
+  offset: 0, 0
+  index: -1
+vayset
+  rotate: true
+  xy: 217, 375
+  size: 161, 114
+  orig: 163, 117
+  offset: 1, 1
+  index: -1

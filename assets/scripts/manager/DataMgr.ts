@@ -79,6 +79,7 @@ export class DataManager {
     // ====== Sounds ======
     public getSoundPath(name: string) {
         const groups = this._paths.sounds;
+        cc.log(groups);
         for (const type in groups) {
             if (groups[type][name]) {
                 return groups[type][name];

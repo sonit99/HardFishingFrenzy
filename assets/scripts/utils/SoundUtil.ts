@@ -29,7 +29,7 @@ export const BGM = {
 } as const;
 
 @ccclass
-export default class SoundUtil {
+export default class SoundUtil extends cc.Component {
   static instance: SoundUtil = null;
 
   private listSFX: { [key: string]: cc.AudioClip } = {};
@@ -42,11 +42,11 @@ export default class SoundUtil {
 
   /** 🎵 Phát nhạc nền theo tên trong paths.json */
   async playBGM(name: string): Promise<void> {
-    const clip = this.listBGM[name];
+    let clip = this.listBGM[name];
     if (!clip) {
       await DataManager.instance.getClip(name).then((audioClip) => {
         if (audioClip) {
-          cc.audioEngine.playMusic(audioClip, true);
+          clip = this.listBGM[name] = audioClip;
         } else {
           cc.warn(`[SoundUtil] BGM not found: ${name}`);
           return;
@@ -67,11 +67,11 @@ export default class SoundUtil {
     volume: number = 1,
     forward: number = 0
   ): Promise<void> {
-    const clip = this.listSFX[name];
+    let clip = this.listSFX[name];
     if (!clip) {
       await DataManager.instance.getClip(name).then((audioClip) => {
         if (audioClip) {
-          this.listSFX[name] = audioClip;
+          clip = this.listSFX[name] = audioClip;
         } else {
           cc.warn(`[SoundUtil] BGM not found: ${name}`);
           return;

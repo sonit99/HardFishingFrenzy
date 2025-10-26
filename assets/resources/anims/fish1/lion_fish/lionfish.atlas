@@ -1,0 +1,90 @@
+
+lionfish.png
+size: 376,268
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+fish_body
+  rotate: false
+  xy: 0, 175
+  size: 339, 93
+  orig: 339, 93
+  offset: 0, 0
+  index: -1
+gai1
+  rotate: false
+  xy: 241, 12
+  size: 112, 23
+  orig: 114, 24
+  offset: 1, 1
+  index: -1
+gai2
+  rotate: true
+  xy: 341, 156
+  size: 112, 35
+  orig: 115, 38
+  offset: 1, 1
+  index: -1
+gai3
+  rotate: true
+  xy: 273, 79
+  size: 94, 64
+  orig: 97, 66
+  offset: 1, 1
+  index: -1
+gai4
+  rotate: false
+  xy: 202, 81
+  size: 69, 92
+  orig: 72, 94
+  offset: 1, 1
+  index: -1
+gai5
+  rotate: false
+  xy: 339, 65
+  size: 36, 89
+  orig: 38, 92
+  offset: 1, 1
+  index: -1
+gai6
+  rotate: false
+  xy: 206, 12
+  size: 33, 67
+  orig: 35, 69
+  offset: 1, 1
+  index: -1
+gai7
+  rotate: false
+  xy: 241, 37
+  size: 48, 40
+  orig: 51, 43
+  offset: 2, 1
+  index: -1
+vay1
+  rotate: false
+  xy: 0, 0
+  size: 101, 45
+  orig: 101, 45
+  offset: 0, 0
+  index: -1
+vay2
+  rotate: false
+  xy: 103, 0
+  size: 101, 45
+  orig: 101, 45
+  offset: 0, 0
+  index: -1
+vay3
+  rotate: false
+  xy: 0, 47
+  size: 200, 126
+  orig: 200, 126
+  offset: 0, 0
+  index: -1
+vay4
+  rotate: false
+  xy: 291, 53
+  size: 16, 24
+  orig: 16, 24
+  offset: 0, 0
+  index: -1

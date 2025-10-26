@@ -1,7 +1,9 @@
 import { DataManager } from "../../manager/DataMgr";
 import GameCoreManager from "../../manager/GameCoreMgr";
 import SoundUtil, { BGM, SFX } from "../../utils/SoundUtil";
+import UICtrl from "../UICtrl";
 import FishCtrl, { FishInfo } from "./FishCtrl";
+import MinigameController from "./MinigameController";
 import PopUp from "./PopUp";
 
 const { ccclass, property } = cc._decorator;
@@ -24,12 +26,6 @@ export default class GamePlayMgr extends cc.Component {
   angleNode: cc.Node = null;
 
   @property(cc.Node)
-  powerBar: cc.Node = null;
-
-  @property(cc.Node)
-  throwBtn: cc.Node = null;
-
-  @property(cc.Node)
   waterArea: cc.Node = null;
 
   @property(cc.Node)
@@ -50,15 +46,21 @@ export default class GamePlayMgr extends cc.Component {
   private hookVelocity: cc.Vec2 = cc.v2(0, 0);
 
   private hookInitialPos: cc.Vec2 = cc.v2();
-  // private cameraOffset: cc.Vec2 = cc.v2();
+  private cameraOffset: cc.Vec2 = cc.v2();
 
   private hookedFish: cc.Node = null;
   private hookedFishInfo: FishInfo = null;
 
+  private isInWater: boolean = false;
+  private waterSinkSpeed: number = 50; // px/s
+  private waterTargetDepth: number = 250;
+  private circularRadius: number = 0; // khoảng cách từ tip cần câu
+  private circularAngle: number = 0; // góc hiện tại
+
   async onLoad() {
     await DataManager.instance.loadAll();
 
-    this.powerBar.active = false;
+    UICtrl.instance.activeatePowerBar(false);
     this.angleNode.active = true;
 
     // === Đặt hook ở tip của rod ===
@@ -70,27 +72,26 @@ export default class GamePlayMgr extends cc.Component {
 
     this.hookInitialPos = cc.v2(382, 322);
     this.hook.setPosition(cc.v2(382, 322));
-
   }
 
   start() {
     this.node.getChildByName("Player").active = true;
     SoundUtil.instance.playBGM(BGM.AtlantisOcean);
-    SoundUtil.instance.playSFX(SFX.BigWave, true);
+    SoundUtil.instance.playSFX(SFX.BigWave, true, 0.3);
     this.characterSpine.setAnimation(0, "stand", true);
     this.schedule(this.updateAngle, 0.02);
 
     // Camera offset
-    // const camWorld = GameCoreManager.instance.getCameraWorldPos();
-    // const hookWorld = this.hook.convertToWorldSpaceAR(cc.v2(0, 0));
-    // this.cameraOffset = cc.v2(camWorld.x - hookWorld.x - 200, 0);
+    const camWorld = GameCoreManager.instance.getCameraWorldPos();
+    const hookWorld = this.hook.convertToWorldSpaceAR(cc.v2(0, 0));
+    this.cameraOffset = cc.v2(camWorld.x - hookWorld.x - 500, 0);
   }
 
   updateAngle() {
     // Input
-    this.throwBtn.on(cc.Node.EventType.TOUCH_START, this.onTouchStart, this);
-    this.throwBtn.on(cc.Node.EventType.TOUCH_END, this.onTouchEnd, this);
-    this.throwBtn.on(cc.Node.EventType.TOUCH_CANCEL, this.onTouchEnd, this);
+    this.node.on(cc.Node.EventType.TOUCH_START, this.onTouchStart, this);
+    this.node.on(cc.Node.EventType.TOUCH_END, this.onTouchEnd, this);
+    this.node.on(cc.Node.EventType.TOUCH_CANCEL, this.onTouchEnd, this);
 
     if (this.isFlying) return;
     const time = (Date.now() % 2000) / 2000;
@@ -102,8 +103,8 @@ export default class GamePlayMgr extends cc.Component {
   onTouchStart() {
     if (this.isFlying) return;
     this.unschedule(this.updateAngle);
-    this.powerBar.active = true;
-    this.powerBar.getComponent(cc.ProgressBar).progress = 0;
+    UICtrl.instance.activeatePowerBar(true);
+    UICtrl.instance.updatePowerBarProgress();
     this.isCharging = true;
     this.chargePower = 0;
     this.schedule(this.increasePower, 0.02);
@@ -116,8 +117,7 @@ export default class GamePlayMgr extends cc.Component {
     }
     this.chargePower += this.maxPower / 10;
     if (this.chargePower > this.maxPower) this.chargePower = this.maxPower;
-    this.powerBar.getComponent(cc.ProgressBar).progress =
-      this.chargePower / this.maxPower;
+    UICtrl.instance.updatePowerBarProgress(this.chargePower / this.maxPower);
   }
 
   onTouchEnd() {
@@ -126,9 +126,9 @@ export default class GamePlayMgr extends cc.Component {
     this.unschedule(this.increasePower);
     this.launchHook();
     // Stop Input
-    this.throwBtn.off(cc.Node.EventType.TOUCH_START, this.onTouchStart, this);
-    this.throwBtn.off(cc.Node.EventType.TOUCH_END, this.onTouchEnd, this);
-    this.throwBtn.off(cc.Node.EventType.TOUCH_CANCEL, this.onTouchEnd, this);
+    this.node.off(cc.Node.EventType.TOUCH_START, this.onTouchStart, this);
+    this.node.off(cc.Node.EventType.TOUCH_END, this.onTouchEnd, this);
+    this.node.off(cc.Node.EventType.TOUCH_CANCEL, this.onTouchEnd, this);
   }
 
   launchHook() {
@@ -152,7 +152,7 @@ export default class GamePlayMgr extends cc.Component {
       this.hook.angle = hookAngle;
 
       this.scheduleOnce(() => {
-        this.powerBar.active = false;
+        UICtrl.instance.activeatePowerBar(false);
         this.angleNode.active = false;
       }, 0.5);
     }, 0.5);
@@ -160,7 +160,55 @@ export default class GamePlayMgr extends cc.Component {
 
   update(dt: number) {
     if (!this.isFlying) {
-      return;
+      if (this.isInWater) {
+        const rodTipWorld = this.getRodTipWorldPos();
+        const rodTipLocal = this.hook.parent.convertToNodeSpaceAR(rodTipWorld);
+
+        // 🔽 Giảm dần độ sâu
+        const targetRadius = Math.max(
+          this.circularRadius * dt,
+          this.waterTargetDepth
+        );
+        this.circularRadius = cc.misc.lerp(
+          this.circularRadius,
+          targetRadius,
+          0.05
+        );
+
+        // 🔁 Di chuyển theo cung tròn quanh tip
+        this.circularAngle += 0.1 * dt; // tốc độ quay nhẹ quanh tip
+        const newX =
+          rodTipLocal.x + Math.cos(this.circularAngle) * this.circularRadius;
+        const newY =
+          rodTipLocal.y - Math.sin(this.circularAngle) * this.circularRadius;
+
+        const current = this.hook.getPosition();
+        const target = cc.v2(newX, newY);
+        this.hook.setPosition(current.lerp(target, 0.05));
+
+        // 🧭 Cập nhật góc xoay hook
+        // const dir = target.sub(current).normalize();
+        // const angle = cc.misc.radiansToDegrees(Math.atan2(dir.y, dir.x)) - 90;
+        // this.hook.angle = cc.misc.lerp(this.hook.angle, angle, 0.05);
+
+        const currentAngle = this.hook.angle;
+        const targetAngle = 90; // hướng thẳng xuống
+        cc.tween(this.hook)
+          .to(0.5, { angle: targetAngle }, { easing: "quadOut" })
+          .start();
+
+        // 🎣 Khi rơi đủ sâu → gọi FishCtrl
+        if (
+          this.hook.x <= rodTipLocal.x ||
+          this.hook.y <= rodTipLocal.y - this.waterTargetDepth
+        ) {
+          this.isInWater = false;
+          cc.log("🐟 Hook reached stable underwater position");
+          const fishCtrl = this.waterArea.getComponent(FishCtrl);
+          if (fishCtrl) fishCtrl.onHookInWater(this.hook);
+        }
+        // return; // tránh chạy phần flying phía dưới
+      }
     } else {
       // Hook đang bay
       this.hookVelocity.y +=
@@ -177,13 +225,17 @@ export default class GamePlayMgr extends cc.Component {
 
       // Camera follow ngang theo hook, không follow Y
       const hookWorld = this.hook.convertToWorldSpaceAR(cc.v2(0, 0));
-      GameCoreManager.instance.updateCameraFollow(hookWorld);
-
+      GameCoreManager.instance.updateCameraFollow(
+        hookWorld.add(this.cameraOffset)
+      );
 
       // Va chạm nước
-      if (this.hook.y <= this.waterArea.y + this.waterArea.height / 2) {
-        this.hook.y = this.waterArea.y + this.waterArea.height / 2;
+      const waterSurfaceY = this.waterArea.y + this.waterArea.height / 2;
+      if (this.hook.y <= waterSurfaceY) {
+        // Giữ nguyên vị trí hiện tại (không gán lại Y)
+        this.hook.stopAllActions();
         this.hookHitWater();
+        return;
       }
     }
   }
@@ -197,23 +249,37 @@ export default class GamePlayMgr extends cc.Component {
 
     this.hookVelocity = cc.v2(0, 0);
 
-    cc.log("🎣 Hook hit water, waiting for fish...");
-
     // 1️⃣ Hook chìm xuống
     const sinkDepth = 200; // chiều sâu tính từ mặt nước
-    const sinkTime = 1.5; // thời gian chìm
+    const sinkTime = 1; // thời gian chìm
     const targetY = this.hook.y - sinkDepth;
 
     const sinkAction = cc.sequence(
       cc
-        .moveTo(sinkTime, cc.v2(this.hook.x, targetY))
-        .easing(cc.easeCubicActionOut()),
+        .moveTo(sinkTime, cc.v2(this.hook.x, targetY)),
+        // .easing(cc.easeCubicActionOut()),
       cc.callFunc(() => {
         cc.log("💧 Hook reached depth, waiting for fish...");
         // 2️⃣ Khi hook dừng, gọi FishController
         const fishCtrl = this.waterArea.getComponent(FishCtrl);
         if (this.waterArea && fishCtrl) {
-          fishCtrl.onHookInWater(this.hook);
+          // fishCtrl.onHookInWater(this.hook);
+          this.isInWater = true;
+          // ✅ Tính vị trí bắt đầu (hook hiện tại)
+          const hookPos = this.hook.getPosition();
+
+          // ✅ Tính tâm là tip cần câu (local space)
+          const rodTipWorld = this.getRodTipWorldPos();
+          const rodTipLocal =
+            this.hook.parent.convertToNodeSpaceAR(rodTipWorld);
+
+          this.circularRadius = hookPos.sub(rodTipLocal).mag();
+          this.circularAngle = Math.atan2(
+            hookPos.y - rodTipLocal.y,
+            hookPos.x - rodTipLocal.x
+          );
+
+          cc.log("💧 Hook entered water, starting slow sink and curve move...");
         } else {
           cc.warn("⚠️ fishCtrl chưa được gán trong GamePlayMgr");
         }
@@ -292,7 +358,7 @@ export default class GamePlayMgr extends cc.Component {
     miniClone.parent = fishInfo.node; // gắn trực tiếp vào cá
     miniClone.setPosition(0, -100); // nằm dưới bụng cá
 
-    const miniCtrl = miniClone.getComponent("MinigameController");
+    const miniCtrl = miniClone.getComponent(MinigameController);
     miniCtrl.startMiniGame(difficulty); // không cần worldPos nữa
 
     // 🎧 Lắng nghe sự kiện riêng cho clone này
@@ -320,15 +386,13 @@ export default class GamePlayMgr extends cc.Component {
     // this.powerBar.getComponent(cc.ProgressBar).progress = 0;
   }
 
-
-
   private onMiniGameMiss(failRatio: number) {
     cc.log(`🎯 MiniGame miss: ${failRatio}`);
     SoundUtil.instance.playSFX(SFX.LineSnap);
     if (failRatio === 0.8) {
       SoundUtil.instance.playSFX(SFX.Warning);
     }
-    this.powerBar.getComponent(cc.ProgressBar).progress = failRatio;
+    UICtrl.instance.updatePowerBarProgress(failRatio);
   }
 
   private onMiniGameProgress(ratio: number) {
@@ -361,8 +425,7 @@ export default class GamePlayMgr extends cc.Component {
       cc.callFunc(() => {
         // Kéo hook hoàn toàn về rod
         const rodTipWorld = this.getRodTipWorldPos();
-        const rodTipLocal =
-          this.hook.parent.convertToNodeSpaceAR(rodTipWorld);
+        const rodTipLocal = this.hook.parent.convertToNodeSpaceAR(rodTipWorld);
         const moveBack = cc.moveTo(0.6, rodTipLocal).easing(cc.easeBackIn());
         this.hook.runAction(moveBack);
 
@@ -384,7 +447,9 @@ export default class GamePlayMgr extends cc.Component {
     if (this.hookedFish) {
       this.hookedFish.destroy();
       this.hookedFish = null;
-      let open = cc.callFunc(() => { this.popup.getComponent(PopUp).openPopup() });
+      let open = cc.callFunc(() => {
+        this.popup.getComponent(PopUp).openPopup();
+      });
       let setInfo = cc.callFunc(() => {
         this.popup
           .getComponent(PopUp)
@@ -394,7 +459,7 @@ export default class GamePlayMgr extends cc.Component {
             this.hookedFishInfo.stats.value,
             this.hookedFishInfo.stats.rarity,
             this.hookedFishInfo.stats.id
-          )
+          );
       });
       let seq = cc.sequence(open, setInfo);
       this.node.runAction(seq);
@@ -427,7 +492,9 @@ export default class GamePlayMgr extends cc.Component {
 
     if (this.hookedFish) {
       this.hookedFish.parent = this.waterArea;
-      this.hookedFish.children[0].getComponent(sp.Skeleton).setAnimation(0, "swim", true);
+      this.hookedFish.children[0]
+        .getComponent(sp.Skeleton)
+        .setAnimation(0, "swim", true);
       cc.log("🐟 Released fish back to water", this.hookedFish);
       this.hookedFish = null;
     }
@@ -450,7 +517,7 @@ export default class GamePlayMgr extends cc.Component {
     this.hookedFish = null;
     GameCoreManager.instance.setCameraPosition(cc.v2(0, 0));
 
-    this.powerBar.active = false;
+    UICtrl.instance.activeatePowerBar(false);
     this.angleNode.active = true;
     this.schedule(this.updateAngle, 0.02);
   }

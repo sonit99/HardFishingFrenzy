@@ -9,7 +9,7 @@ export default class NodeZoom extends cc.Component {
 
     // LIFE-CYCLE CALLBACKS:
 
-    update() {
+    onLoad() {
         let scaleUp = cc.scaleTo(0.5, this.scaleNum);
         let scaleDown = cc.scaleTo(0.5, 1.0);
         let seq = cc.sequence(scaleUp, scaleDown);

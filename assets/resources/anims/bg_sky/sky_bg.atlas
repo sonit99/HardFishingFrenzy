@@ -1,0 +1,20 @@
+
+sky_bg.png
+size: 4168,1924
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+Layer 1
+  rotate: false
+  xy: 0, 255
+  size: 4167, 1667
+  orig: 4169, 1669
+  offset: 1, 1
+  index: -1
+rain
+  rotate: false
+  xy: 0, 0
+  size: 439, 253
+  orig: 440, 254
+  offset: 0, 0
+  index: -1

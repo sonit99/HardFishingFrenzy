@@ -6,7 +6,8 @@
   "dependencies": {
     "@types/async": "^3.2.3",
     "async": "^3.2.6",
-    "qrcode": "^1.5.4"
+    "qrcode": "^1.5.4",
+    "yuka": "^0.7.8"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -15,6 +16,7 @@
   "license": "ISC",
   "devDependencies": {
     "@types/node": "^22.16.4",
-    "@types/qrcode": "^1.5.5"
+    "@types/qrcode": "^1.5.5",
+    "@types/yuka": "^0.7.4"
   }
 }

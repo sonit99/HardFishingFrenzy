@@ -33,11 +33,6 @@ export default class GameCoreManager extends cc.Component {
       "prefabs",
       (finished: number, total: number, item: any) => {
         // this.loadProgressCb(finished, total, item);
-        this.initBGNode();
-        this.initGamePlayNode();
-        this.initLobbyNode();
-        this.initCameraNode();
-        this.node.sortAllChildren();
       },
       (err, assets) => {
         if (err) {
@@ -45,6 +40,16 @@ export default class GameCoreManager extends cc.Component {
           return;
         }
         console.log("Load xong toàn bộ:", assets.length);
+        this.initBGNode();
+        this.initGamePlayNode();
+        this.initLobbyNode();
+        this.initCameraNode();
+        this.scheduleOnce(() => {
+          this.node.sortAllChildren();
+          cc.log(this._nCamera.getSiblingIndex());
+          this._nBG.active = true;
+          this._nLobby.active = true;
+        }, 0.1);
       }
     );
   }
@@ -52,13 +57,15 @@ export default class GameCoreManager extends cc.Component {
   initBGNode() {
     this._nBG = cc.find("BG", this.node);
     this._nBG.setSiblingIndex(0);
-    this._nBG.active = true;
+    this._nBG.active = false;
   }
 
   initGamePlayNode() {
     DataManager.instance.getPrefabs("GamePlay").then((prefab) => {
       this._nGamePlay = cc.instantiate(prefab);
+      this._nGamePlay.setPosition(cc.v2(0, 0));
       this._nGamePlay.parent = this.node;
+      this._nGamePlay.getComponent(cc.Widget).updateAlignment();
       this._nGamePlay.setSiblingIndex(1);
       this._nGamePlay.active = false;
     });
@@ -68,15 +75,14 @@ export default class GameCoreManager extends cc.Component {
     DataManager.instance.getPrefabs("Lobby").then((prefab) => {
       this._nLobby = cc.instantiate(prefab);
       this._nLobby.parent = this.node;
-      this._nLobby.setSiblingIndex(2);
-      this._nLobby.active = true;
+      this._nLobby.setSiblingIndex(1);
+      this._nLobby.active = false;
     });
   }
 
   initCameraNode() {
-    this._nBG = cc.find("Main Camera", this.node);
-    this._nBG.setSiblingIndex(10);
-    this._nBG.active = true;
+    this._nCamera = cc.find("Main Camera", this.node);
+    this._nCamera.setSiblingIndex(10);
   }
 
   /////////////////////////////////////////////////////////////////////////////////
@@ -98,7 +104,11 @@ export default class GameCoreManager extends cc.Component {
   }
 
   lobbyBgEvent(callFunc: Function) {
-    this._nBG.children[2].on(cc.Node.EventType.TOUCH_START, callFunc, this);
+    this._nBG.children[2].on(
+      cc.Node.EventType.TOUCH_START,
+      callFunc,
+      this._nBG
+    );
   }
 
   getCameraPos(): cc.Vec2 {

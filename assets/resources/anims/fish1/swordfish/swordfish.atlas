@@ -1,0 +1,20 @@
+
+swordfish.png
+size: 320,108
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+body_fish
+  rotate: false
+  xy: 0, 0
+  size: 287, 107
+  orig: 287, 107
+  offset: 0, 0
+  index: -1
+vay
+  rotate: true
+  xy: 289, 62
+  size: 45, 29
+  orig: 45, 29
+  offset: 0, 0
+  index: -1

@@ -1,0 +1,34 @@
+
+crystal_seadragon.png
+size: 100,100
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+fish_body
+  rotate: true
+  xy: 0, 0
+  size: 73, 96
+  orig: 73, 96
+  offset: 0, 0
+  index: -1
+vay1
+  rotate: false
+  xy: 46, 78
+  size: 21, 20
+  orig: 21, 20
+  offset: 0, 0
+  index: -1
+vay2
+  rotate: false
+  xy: 0, 79
+  size: 44, 19
+  orig: 44, 19
+  offset: 0, 0
+  index: -1
+vay3
+  rotate: true
+  xy: 69, 75
+  size: 23, 30
+  orig: 23, 30
+  offset: 0, 0
+  index: -1
