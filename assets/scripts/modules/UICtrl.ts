@@ -42,6 +42,7 @@ export default class UICtrl extends cc.Component {
 
     onLoad () {
         UICtrl.instance = this;
+        this.updateLabels();
     }
     
 

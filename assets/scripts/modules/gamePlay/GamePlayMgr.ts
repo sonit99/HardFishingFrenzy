@@ -2,6 +2,7 @@ import { DataManager } from "../../manager/DataMgr";
 import GameCoreManager from "../../manager/GameCoreMgr";
 import SoundUtil, { BGM, SFX } from "../../utils/SoundUtil";
 import UICtrl from "../UICtrl";
+import Fish from "./Fish";
 import FishCtrl, { FishInfo } from "./FishCtrl";
 import MinigameController from "./MinigameController";
 import PopUp from "./PopUp";
@@ -115,7 +116,7 @@ export default class GamePlayMgr extends cc.Component {
       this.unschedule(this.increasePower);
       return;
     }
-    this.chargePower += this.maxPower / 10;
+    this.chargePower += this.maxPower / 50;
     if (this.chargePower > this.maxPower) this.chargePower = this.maxPower;
     UICtrl.instance.updatePowerBarProgress(this.chargePower / this.maxPower);
   }
@@ -258,7 +259,7 @@ export default class GamePlayMgr extends cc.Component {
     const fishCtrl = this.waterArea.getComponent(FishCtrl);
 
     const sinkAction = cc.sequence(
-      cc.moveTo(sinkTime, cc.v2(targetX, Math.min(targetX, targetY))),
+      cc.moveTo(sinkTime, cc.v2(targetX * 1.5, Math.min(targetX, targetY))),
       // .easing(cc.easeCubicActionOut()),
       cc.callFunc(() => {
         cc.log("💧 Hook reached depth, waiting for fish...");
@@ -409,45 +410,55 @@ export default class GamePlayMgr extends cc.Component {
   private onMiniGameProgress(ratio: number) {
     cc.log(`🎯 MiniGame progress: ${ratio}`);
     SoundUtil.instance.playSFX(SFX.PullLine);
-    this.characterSpine.setAnimation(0, "fishing", false);
-    this.scheduleOnce(() => {
-      this.characterSpine.setAnimation(0, "stand", true);
-    }, 0.5);
+    this.characterSpine.setAnimation(0, "fishing", true);
 
     // 🎣 Mục tiêu: hook di chuyển dần về vị trí cần câu (đầu rod)
     const rodTipWorld = this.getRodTipWorldPos();
     const rodTipLocal = this.hook.parent.convertToNodeSpaceAR(rodTipWorld);
 
     // Vị trí hiện tại của hook
-    const currentPos = this.hook.getPosition();
+    // const currentPos = this.hook.getPosition();
 
     // // 🧩 Làm mượt và tăng tốc theo tiến trình
-    const easedRatio = Math.pow(ratio, 2.2); // tốc độ kéo tăng dần
-    const pullStrength = 0.1 + easedRatio * 0.9;
+    // const easedRatio = Math.pow(ratio, 2.2); // tốc độ kéo tăng dần
+    // const pullStrength = 0.1 + easedRatio * 0.9;
 
     // 🎣 Di chuyển hook về cần
-    let targetPos = currentPos.lerp(rodTipLocal, pullStrength);
+    // let targetPos = currentPos.lerp(rodTipLocal, pullStrength);
     this.hook.stopAllActions();
     // this.hook.runAction(
     //   cc.moveTo(0.3, targetPos).easing(cc.easeCubicActionOut())
     // );
 
+    let time = 2;
     this.hook.runAction(
       cc.callFunc(() => {
         // Kéo hook hoàn toàn về rod
-        const rodTipWorld = this.getRodTipWorldPos();
-        const rodTipLocal = this.hook.parent.convertToNodeSpaceAR(rodTipWorld);
-        const moveBack = cc.moveTo(0.6, rodTipLocal).easing(cc.easeBackIn());
+        // const rodTipWorld = this.getRodTipWorldPos();
+        // const rodTipLocal = this.hook.parent.convertToNodeSpaceAR(rodTipWorld);
+        const moveBack = cc.moveTo(time, rodTipLocal).easing(cc.easeBackIn());
         this.hook.runAction(moveBack);
+        this.schedule(
+          () => {
+            GameCoreManager.instance.updateCameraFollow(
+              this.hook
+                .convertToWorldSpaceAR(cc.v2(0, 0))
+                .add(this.cameraOffset)
+            );
+          },
+          0.01,
+          time / 0.01
+        );
 
         this.scheduleOnce(() => {
+          this.characterSpine.setAnimation(0, "stand", true);
           this.onMiniGameWin();
-          this.resetCycle();
-        }, 0.6);
+          // this.resetCycle();
+        }, time);
       })
     );
 
-    GameCoreManager.instance.updateCameraFollow(targetPos);
+    // GameCoreManager.instance.updateCameraFollow(targetPos);
   }
 
   private onMiniGameWin() {
@@ -456,27 +467,36 @@ export default class GamePlayMgr extends cc.Component {
     SoundUtil.instance.playSFX(SFX.Success2);
 
     if (this.hookedFish) {
-      this.hookedFish.destroy();
-      this.hookedFish = null;
-      let open = cc.callFunc(() => {
-        this.popup.getComponent(PopUp).openPopup();
-      });
-      let setInfo = cc.callFunc(() => {
-        this.popup
-          .getComponent(PopUp)
-          .setFishInfo(
-            this.hookedFishInfo.stats.call,
-            this.hookedFishInfo.stats.length,
-            this.hookedFishInfo.stats.value,
-            this.hookedFishInfo.stats.rarity,
-            this.hookedFishInfo.stats.id
-          );
-      });
-      let seq = cc.sequence(open, setInfo);
-      this.node.runAction(seq);
+      this.hookedFish.scaleX = -1;
+      this.hookedFish.setPosition(
+        this.hook.x - this.hookedFish.children[0].width / 1.5,
+        250
+      );
+      this.hookedFish.children[1].active = false; // tắt hiệu bong bóng
+      // this.characterSpine.setAnimation(0, "celebrate", false);
+      this.scheduleOnce(() => {
+        this.hookedFish.destroy();
+        this.hookedFish = null;
+        this.characterSpine.setAnimation(0, "stand", true);
+        let open = cc.callFunc(() => {
+          this.popup.getComponent(PopUp).openPopup();
+        });
+        let setInfo = cc.callFunc(() => {
+          this.popup
+            .getComponent(PopUp)
+            .setFishInfo(
+              this.hookedFishInfo.stats.call,
+              this.hookedFishInfo.stats.length,
+              this.hookedFishInfo.stats.value,
+              this.hookedFishInfo.stats.rarity,
+              this.hookedFishInfo.stats.id
+            );
+        });
+        let seq = cc.sequence(open, setInfo);
+        this.node.runAction(seq);
+        this.resetCycle();
+      }, 3);
     }
-
-    this.resetCycle();
   }
 
   private onMiniGameFail() {
@@ -502,10 +522,14 @@ export default class GamePlayMgr extends cc.Component {
     );
 
     if (this.hookedFish) {
+      let worldPos = this.hookedFish.convertToWorldSpaceAR(cc.v2(0, 0));
+      let localPos = this.waterArea.convertToNodeSpaceAR(worldPos);
+      this.hookedFish.setPosition(localPos);
       this.hookedFish.parent = this.waterArea;
       this.hookedFish.children[0]
         .getComponent(sp.Skeleton)
         .setAnimation(0, "swim", true);
+      this.hookedFish.getComponent(Fish).pickNewTarget();
       cc.log("🐟 Released fish back to water", this.hookedFish);
       this.hookedFish = null;
     }

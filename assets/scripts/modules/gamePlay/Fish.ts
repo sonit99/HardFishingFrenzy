@@ -97,7 +97,7 @@ export default class Fish extends cc.Component {
     this.node.angle = this.angle;
   }
 
-  private pickNewTarget() {
+  pickNewTarget() {
     const r = this.roamArea;
     const minDistance = 800; // 📏 khoảng cách tối thiểu giữa 2 target (px)
     let newTarget: cc.Vec2;
