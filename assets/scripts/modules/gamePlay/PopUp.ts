@@ -6,9 +6,8 @@
 //  - https://docs.cocos.com/creator/2.4/manual/en/scripting/life-cycle-callbacks.html
 
 import SoundUtil, { SFX } from "../../utils/SoundUtil";
-import Lobby from "../Lobby";
 import UICtrl from "../UICtrl";
-import { FishRarity } from "./FishCtrl";
+import { FishRarity } from "./Fish";
 
 const {ccclass, property} = cc._decorator;
 

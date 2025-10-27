@@ -6,7 +6,8 @@
     },
     "popups": {},
     "items": {
-      "Fish": "prefabs/items/Fish"
+      "Fish": "prefabs/items/Fish",
+      "FlyingLbl": "prefabs/items/FlyingLbl"
     }
   },
   "textures": {},

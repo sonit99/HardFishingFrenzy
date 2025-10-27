@@ -1,6 +1,7 @@
 import { DataManager } from "../../manager/DataMgr";
 import GameCoreManager from "../../manager/GameCoreMgr";
 import SoundUtil, { BGM, SFX } from "../../utils/SoundUtil";
+import FlyingLabel, { Result } from "../FlyingLbl";
 import UICtrl from "../UICtrl";
 import Fish from "./Fish";
 import FishCtrl, { FishInfo } from "./FishCtrl";
@@ -70,8 +71,7 @@ export default class GamePlayMgr extends cc.Component {
 
   start() {
     this.node.getChildByName("Player").active = true;
-    SoundUtil.instance.playBGM(BGM.AtlantisOcean);
-    SoundUtil.instance.playSFX(SFX.BigWave, true, 0.3);
+    this.startSounds();
     this.characterSpine.setAnimation(0, "stand", true);
     this.schedule(this.updateAngle, 0.02);
 
@@ -210,7 +210,7 @@ export default class GamePlayMgr extends cc.Component {
   }
 
   hookHitWater() {
-    SoundUtil.instance.playSFX(SFX.HookTouchWater, false, 1.0);
+    SoundUtil.instance.playSFX(SFX.HookTouchWater, false, 1.0, 1.0);
     this.isFlying = false;
     if (this.ropeNode) {
       this.ropeNode.getComponent(RopeRenderer).setFlyingState(false);
@@ -367,6 +367,8 @@ export default class GamePlayMgr extends cc.Component {
   private onMiniGameProgress(ratio: number) {
     cc.log(`🎯 MiniGame progress: ${ratio}`);
     SoundUtil.instance.playSFX(SFX.PullLine);
+    this.createFlyingLbl(Result.Success);
+
     this.characterSpine.setAnimation(0, "fishing", true);
 
     // 🎣 Mục tiêu: hook di chuyển dần về vị trí cần câu (đầu rod)
@@ -453,6 +455,8 @@ export default class GamePlayMgr extends cc.Component {
   private onMiniGameFail() {
     cc.log("💥 Line snapped, fish escaped!");
     this.unschedule(this.fishTugging);
+    this.createFlyingLbl(Result.Fail);
+
     // Hook rơi xuống hoặc reset vị trí
     this.hook.runAction(
       cc.sequence(
@@ -486,6 +490,28 @@ export default class GamePlayMgr extends cc.Component {
       cc.log("🐟 Released fish back to water", this.hookedFish);
       this.hookedFish = null;
     }
+  }
+
+  createFlyingLbl(r: Result) {
+    cc.log("create flying lbl", r)
+    DataManager.instance.getPrefabs("FlyingLbl").then((prefab) => {
+      const nLbl = cc.instantiate(prefab);
+      nLbl.setPosition(cc.v2(0, 0));
+      nLbl.parent = this.hook;
+      nLbl.getComponent(FlyingLabel).init(r);
+    });
+  }
+
+  startSounds(){
+    SoundUtil.instance.playBGM(BGM.AtlantisOcean);
+    SoundUtil.instance.playSFX(SFX.BigWave, true, 0.4);
+    this.schedule(()=>{
+      SoundUtil.instance.playSFX(SFX.RoaringWind, false, 0.8);
+    }, 7, cc.macro.REPEAT_FOREVER);
+    this.schedule(()=>{
+      SoundUtil.instance.playSFX(SFX.Whale, false, 0.8);
+    }, 15, cc.macro.REPEAT_FOREVER);
+    SoundUtil.instance.playSFX(SFX.Thunder, true, 0.8);
   }
 
   private resetHook() {
