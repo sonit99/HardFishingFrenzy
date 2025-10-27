@@ -17,10 +17,12 @@ export interface IFishStats {
 
 @ccclass
 export default class Fish extends cc.Component {
-  maxSpeed: number = 200;
+  minSpeed = 100;
+  maxSpeed = 250;
+  speed = 200;
   velocity: cc.Vec2 = cc.v2(0, 0);
   direction: number = 1; // 1: right, -1: left
-  roamArea: cc.Rect = cc.rect(-1500, 0, 1000, 500);
+  roamArea: cc.Rect = cc.rect(-1500, -500, 1000, 1000);
   angle: number = 0;
   targetPos: cc.Vec2 = cc.v2(0, 0);
   area: Area = Area.Near;
@@ -60,29 +62,6 @@ export default class Fish extends cc.Component {
       this.node.scaleX = 1; // sang trái
     }
 
-    // // === Xác định hướng trái/phải ===
-    // let targetScaleX = this.node.scaleX;
-    // if (moveDir.x >= 0) {
-    //   targetScaleX = -1; // sang phải
-    // } else {
-    //   targetScaleX = 1; // sang trái
-    // }
-
-    // // === Lật mượt mà, không bẹp ===
-    // const current = this.node.scaleX;
-    // const newScale = cc.misc.lerp(current, targetScaleX, 0.15);
-    // // tránh giá trị giữa quá nhỏ khiến sprite bị ép mỏng
-    // if (Math.abs(newScale) < 0.3) {
-    //   this.node.scaleX = 0.3 * Math.sign(newScale || 1);
-    // } else {
-    //   this.node.scaleX = newScale;
-    // }
-
-    // === Tính góc nghiêng theo hướng di chuyển ===
-    // Góc gốc của Cocos: 0° là sang trái, tăng CCW
-    // Ta cần xoay cá sao cho:
-    // - Khi bơi sang trái (scaleX=1): angle = atan2(y, -x)
-    // - Khi bơi sang phải (scaleX=-1): angle = atan2(-y, x)
     let targetAngle = 0;
     if (this.node.scaleX === 1) {
       // hướng trái
@@ -113,8 +92,6 @@ export default class Fish extends cc.Component {
     this.targetPos = newTarget;
 
     // 🎯 Random lại tốc độ mỗi khi chọn target mới
-    const minSpeed = 100;
-    const maxSpeed = 400;
-    this.maxSpeed = minSpeed + Math.random() * (maxSpeed - minSpeed);
+    this.speed = this.minSpeed + Math.random() * (this.maxSpeed - this.minSpeed);
   }
 }

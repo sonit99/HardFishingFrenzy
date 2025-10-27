@@ -6,6 +6,7 @@ import Fish from "./Fish";
 import FishCtrl, { FishInfo } from "./FishCtrl";
 import MinigameController from "./MinigameController";
 import PopUp from "./PopUp";
+import RopeRenderer from "./RopeRenderer";
 
 const { ccclass, property } = cc._decorator;
 
@@ -46,17 +47,14 @@ export default class GamePlayMgr extends cc.Component {
   private isFlying: boolean = false;
   private hookVelocity: cc.Vec2 = cc.v2(0, 0);
 
-  private hookInitialPos: cc.Vec2 = cc.v2();
+  // private hookInitialPos: cc.Vec2 = cc.v2();
   private cameraOffset: cc.Vec2 = cc.v2();
 
   private hookedFish: cc.Node = null;
   private hookedFishInfo: FishInfo = null;
 
-  private isInWater: boolean = false;
-  private waterSinkSpeed: number = 50; // px/s
-  private waterTargetDepth: number = 250;
-  private circularRadius: number = 0; // khoảng cách từ tip cần câu
-  private circularAngle: number = 0; // góc hiện tại
+  private fishHooked: boolean = false;
+
 
   async onLoad() {
     await DataManager.instance.loadAll();
@@ -64,15 +62,10 @@ export default class GamePlayMgr extends cc.Component {
     UICtrl.instance.activeatePowerBar(false);
     this.angleNode.active = true;
 
-    // === Đặt hook ở tip của rod ===
-    // const tipWorld = this.getRodTipWorldPos();
-    // const tipLocal = this.hook.parent.convertToNodeSpaceAR(tipWorld);
-    // this.hook.setPosition(tipLocal);
-    // this.hookInitialPos = tipLocal.clone();
-    // cc.log(tipLocal);
-
-    this.hookInitialPos = cc.v2(382, 322);
+    // this.hookInitialPos = cc.v2(382, 322);
     this.hook.setPosition(cc.v2(382, 322));
+
+    this.node.on("FishBitten", () => { this.fishHooked = true; }, this)
   }
 
   start() {
@@ -117,6 +110,16 @@ export default class GamePlayMgr extends cc.Component {
       return;
     }
     this.chargePower += this.maxPower / 50;
+    let ratio = this.maxPower / this.chargePower
+    if (ratio >= 4) {
+      UICtrl.instance.updatePBColor(cc.Color.GREEN)
+    } else if (ratio >= 2) {
+      UICtrl.instance.updatePBColor(cc.Color.YELLOW)
+    } else if (ratio >= 1.33) {
+      UICtrl.instance.updatePBColor(cc.Color.ORANGE)
+    } else {
+      UICtrl.instance.updatePBColor(cc.Color.RED)
+    }
     if (this.chargePower > this.maxPower) this.chargePower = this.maxPower;
     UICtrl.instance.updatePowerBarProgress(this.chargePower / this.maxPower);
   }
@@ -140,7 +143,8 @@ export default class GamePlayMgr extends cc.Component {
       this.characterSpine.setAnimation(0, "stand", true);
       this.isFlying = true;
       if (this.ropeNode) {
-        this.ropeNode.getComponent("RopeRenderer").setFlyingState(true);
+        this.ropeNode.getComponent(RopeRenderer).setTightState(false);
+        this.ropeNode.getComponent(RopeRenderer).setFlyingState(true);
       }
 
       const rad = cc.misc.degreesToRadians(90 - this.currentAngle);
@@ -160,51 +164,7 @@ export default class GamePlayMgr extends cc.Component {
   }
 
   update(dt: number) {
-    if (!this.isFlying) {
-      // if (this.isInWater) {
-      //   const rodTipWorld = this.getRodTipWorldPos();
-      //   const rodTipLocal = this.hook.parent.convertToNodeSpaceAR(rodTipWorld);
-      //   // 🔽 Giảm dần độ sâu
-      //   const targetRadius = Math.max(
-      //     this.circularRadius * dt,
-      //     this.waterTargetDepth
-      //   );
-      //   this.circularRadius = cc.misc.lerp(
-      //     this.circularRadius,
-      //     targetRadius,
-      //     0.05
-      //   );
-      //   // 🔁 Di chuyển theo cung tròn quanh tip
-      //   this.circularAngle += 0.1 * dt; // tốc độ quay nhẹ quanh tip
-      //   const newX =
-      //     rodTipLocal.x + Math.cos(this.circularAngle) * this.circularRadius;
-      //   const newY =
-      //     rodTipLocal.y - Math.sin(this.circularAngle) * this.circularRadius;
-      //   const current = this.hook.getPosition();
-      //   const target = cc.v2(newX, newY);
-      //   this.hook.setPosition(current.lerp(target, 0.05));
-      //   // 🧭 Cập nhật góc xoay hook
-      //   // const dir = target.sub(current).normalize();
-      //   // const angle = cc.misc.radiansToDegrees(Math.atan2(dir.y, dir.x)) - 90;
-      //   // this.hook.angle = cc.misc.lerp(this.hook.angle, angle, 0.05);
-      //   const currentAngle = this.hook.angle;
-      //   const targetAngle = 90; // hướng thẳng xuống
-      //   cc.tween(this.hook)
-      //     .to(0.5, { angle: targetAngle }, { easing: "quadOut" })
-      //     .start();
-      //   // 🎣 Khi rơi đủ sâu → gọi FishCtrl
-      //   if (
-      //     this.hook.x <= rodTipLocal.x ||
-      //     this.hook.y <= rodTipLocal.y - this.waterTargetDepth
-      //   ) {
-      //     this.isInWater = false;
-      //     cc.log("🐟 Hook reached stable underwater position");
-      //     const fishCtrl = this.waterArea.getComponent(FishCtrl);
-      //     if (fishCtrl) fishCtrl.onHookInWater(this.hook);
-      //   }
-      //   // return; // tránh chạy phần flying phía dưới
-      // }
-    } else {
+    if (this.isFlying) {
       // Hook đang bay
       this.hookVelocity.y +=
         this.gravity * (1 + Math.abs(this.hookVelocity.y) / 500) * dt;
@@ -235,11 +195,25 @@ export default class GamePlayMgr extends cc.Component {
     }
   }
 
+  fishTugging() {
+    if (!this.hookedFish || !this.hook) return;
+    const offset = Math.sin(Date.now() * 0.005) * 20;
+    const target = this.hook.getPosition().add(cc.v2(offset, 0));
+    cc.tween(this.hook)
+      .to(0.2, { position: cc.v3(target) }, { easing: "smooth" })
+      .start();
+
+    // Dây rung nhẹ
+    const rope = this.ropeNode.getComponent("RopeRenderer");
+    rope.swayAmplitude = 5 + Math.random() * 5;
+    rope.sagFactor = 0.08;
+  }
+
   hookHitWater() {
     SoundUtil.instance.playSFX(SFX.HookTouchWater, false, 1.0);
     this.isFlying = false;
     if (this.ropeNode) {
-      this.ropeNode.getComponent("RopeRenderer").setFlyingState(false);
+      this.ropeNode.getComponent(RopeRenderer).setFlyingState(false);
     }
 
     this.hookVelocity = cc.v2(0, 0);
@@ -258,29 +232,8 @@ export default class GamePlayMgr extends cc.Component {
 
     const fishCtrl = this.waterArea.getComponent(FishCtrl);
 
-    const sinkAction = cc.sequence(
-      cc.moveTo(sinkTime, cc.v2(targetX * 1.5, Math.min(targetX, targetY))),
-      // .easing(cc.easeCubicActionOut()),
-      cc.callFunc(() => {
-        cc.log("💧 Hook reached depth, waiting for fish...");
-        // 2️⃣ Khi hook dừng, gọi FishController
-        if (this.waterArea && fishCtrl) {
-          // this.isInWater = true;
-          // // ✅ Tính vị trí bắt đầu (hook hiện tại)
-          // const hookPos = this.hook.getPosition();
-
-          // this.circularRadius = hookPos.sub(rodTipLocal).mag();
-          // this.circularAngle = Math.atan2(
-          //   hookPos.y - rodTipLocal.y,
-          //   hookPos.x - rodTipLocal.x
-          // );
-
-          cc.log("💧 Hook entered water, starting slow sink and curve move...");
-        } else {
-          cc.warn("⚠️ fishCtrl chưa được gán trong GamePlayMgr");
-        }
-      })
-    );
+    const sinkAction =
+      cc.moveTo(sinkTime, cc.v2(targetX * 1.5, Math.min(targetX, targetY)));
     this.hook.runAction(sinkAction);
 
     this.scheduleOnce(() => {
@@ -346,6 +299,10 @@ export default class GamePlayMgr extends cc.Component {
     this.hookedFishInfo = fishInfo;
     this.hookedFish = fishInfo.node;
 
+    this.schedule(this.fishTugging, 0.3);
+
+    this.ropeNode.getComponent(RopeRenderer).setTightState(true);
+
     let difficulty = 1;
     switch (fishInfo.stats.rarity) {
       case "common":
@@ -368,7 +325,7 @@ export default class GamePlayMgr extends cc.Component {
     const miniClone = cc.instantiate(this.minigameUI);
     miniClone.active = true;
     miniClone.parent = fishInfo.node; // gắn trực tiếp vào cá
-    miniClone.setPosition(0, -100); // nằm dưới bụng cá
+    miniClone.setPosition(fishInfo.node.children[0].x / 2, -100); // nằm dưới bụng cá
 
     const miniCtrl = miniClone.getComponent(MinigameController);
     miniCtrl.startMiniGame(difficulty); // không cần worldPos nữa
@@ -416,26 +373,12 @@ export default class GamePlayMgr extends cc.Component {
     const rodTipWorld = this.getRodTipWorldPos();
     const rodTipLocal = this.hook.parent.convertToNodeSpaceAR(rodTipWorld);
 
-    // Vị trí hiện tại của hook
-    // const currentPos = this.hook.getPosition();
-
-    // // 🧩 Làm mượt và tăng tốc theo tiến trình
-    // const easedRatio = Math.pow(ratio, 2.2); // tốc độ kéo tăng dần
-    // const pullStrength = 0.1 + easedRatio * 0.9;
-
-    // 🎣 Di chuyển hook về cần
-    // let targetPos = currentPos.lerp(rodTipLocal, pullStrength);
+    this.unschedule(this.fishTugging);
     this.hook.stopAllActions();
-    // this.hook.runAction(
-    //   cc.moveTo(0.3, targetPos).easing(cc.easeCubicActionOut())
-    // );
 
     let time = 2;
     this.hook.runAction(
       cc.callFunc(() => {
-        // Kéo hook hoàn toàn về rod
-        // const rodTipWorld = this.getRodTipWorldPos();
-        // const rodTipLocal = this.hook.parent.convertToNodeSpaceAR(rodTipWorld);
         const moveBack = cc.moveTo(time, rodTipLocal).easing(cc.easeBackIn());
         this.hook.runAction(moveBack);
         this.schedule(
@@ -452,8 +395,19 @@ export default class GamePlayMgr extends cc.Component {
 
         this.scheduleOnce(() => {
           this.characterSpine.setAnimation(0, "stand", true);
-          this.onMiniGameWin();
-          // this.resetCycle();
+          // this.characterSpine.setAnimation(0, "celebrate", false);
+          this.hook.angle = 0;
+          if(this.hookedFish.scaleX === 1) {
+            this.hookedFish.angle = -90;
+          } else {
+            this.hookedFish.angle = 90;
+          }
+          this.hookedFish.children[1].active = false; // tắt hiệu bong bóng
+          SoundUtil.instance.playSFX(SFX.Success2);
+          this.scheduleOnce(() => {
+            this.onMiniGameWin();
+          }, 3);
+
         }, time);
       })
     );
@@ -463,45 +417,42 @@ export default class GamePlayMgr extends cc.Component {
 
   private onMiniGameWin() {
     cc.log("🏆 Fish successfully caught!");
-    SoundUtil.instance.playSFX(SFX.Success2);
 
     if (this.hookedFish) {
-      this.hookedFish.scaleX = -1;
-      this.hookedFish.setPosition(
-        this.hook.x - this.hookedFish.children[0].width / 1.5,
-        250
-      );
-      this.hookedFish.children[1].active = false; // tắt hiệu bong bóng
-      // this.characterSpine.setAnimation(0, "celebrate", false);
-      this.scheduleOnce(() => {
-        this.hookedFish.destroy();
-        this.hookedFish = null;
-        this.characterSpine.setAnimation(0, "stand", true);
-        let open = cc.callFunc(() => {
-          this.popup.getComponent(PopUp).openPopup();
-        });
-        let setInfo = cc.callFunc(() => {
-          this.popup
-            .getComponent(PopUp)
-            .setFishInfo(
-              this.hookedFishInfo.stats.call,
-              this.hookedFishInfo.stats.length,
-              this.hookedFishInfo.stats.value,
-              this.hookedFishInfo.stats.rarity,
-              this.hookedFishInfo.stats.id
-            );
-        });
-        let seq = cc.sequence(open, setInfo);
-        SoundUtil.instance.playSFX(SFX.Success1);
-        this.node.runAction(seq);
-        this.resetCycle();
-      }, 3);
+      SoundUtil.instance.playSFX(SFX.Success1, false, 0.8, 0.4);
+
+      // this.hookedFish.scaleX = -1;
+      // this.hookedFish.setPosition(
+      //   this.hook.x - this.hookedFish.children[0].width / 1.5,
+      //   250
+      // );
+
+      this.hookedFish.destroy();
+      this.hookedFish = null;
+      this.characterSpine.setAnimation(0, "stand", true);
+      let open = cc.callFunc(() => {
+        this.popup.getComponent(PopUp).openPopup();
+      });
+      let setInfo = cc.callFunc(() => {
+        this.popup
+          .getComponent(PopUp)
+          .setFishInfo(
+            this.hookedFishInfo.stats.call,
+            this.hookedFishInfo.stats.length,
+            this.hookedFishInfo.stats.value,
+            this.hookedFishInfo.stats.rarity,
+            this.hookedFishInfo.stats.id
+          );
+      });
+      let seq = cc.sequence(open, setInfo);
+      this.node.runAction(seq);
+      this.resetCycle();
     }
   }
 
   private onMiniGameFail() {
     cc.log("💥 Line snapped, fish escaped!");
-
+    this.unschedule(this.fishTugging);
     // Hook rơi xuống hoặc reset vị trí
     this.hook.runAction(
       cc.sequence(
@@ -530,6 +481,8 @@ export default class GamePlayMgr extends cc.Component {
         .getComponent(sp.Skeleton)
         .setAnimation(0, "swim", true);
       this.hookedFish.getComponent(Fish).pickNewTarget();
+      this.hookedFish.getComponent(Fish).isHooked = false;
+
       cc.log("🐟 Released fish back to water", this.hookedFish);
       this.hookedFish = null;
     }
@@ -541,7 +494,6 @@ export default class GamePlayMgr extends cc.Component {
     const rodTipWorld = this.getRodTipWorldPos();
     const rodTipLocal = this.hook.parent.convertToNodeSpaceAR(rodTipWorld);
     this.hook.setPosition(rodTipLocal);
-    // this.hook.setPosition(cc.v2(432, 310));
     this.hook.angle = 0;
   }
 

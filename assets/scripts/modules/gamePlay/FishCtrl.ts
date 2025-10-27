@@ -2,6 +2,7 @@ import { DataManager } from "../../manager/DataMgr";
 import SoundUtil, { SFX } from "../../utils/SoundUtil";
 import Fish, { IFishStats } from "./Fish";
 import GamePlayMgr from "./GamePlayMgr";
+import RopeRenderer from "./RopeRenderer";
 
 const { ccclass } = cc._decorator;
 
@@ -206,7 +207,6 @@ export default class FishController extends cc.Component {
   onHookInWater(hook: cc.Node) {
     let nearest: FishInfo = null;
     let minDist = Infinity;
-    // const gameplay = this.node.parent.getComponent(GamePlayMgr);
 
     // === 1️⃣ Lấy vị trí tip hook trong world space
     const tipWorld = hook.parent.convertToWorldSpaceAR(hook.getPosition());
@@ -262,6 +262,7 @@ export default class FishController extends cc.Component {
     fish.node.children[0]
       .getComponent(sp.Skeleton)
       .setAnimation(0, "catch", true);
+      fish.node.children[1].active = true;
 
     // 🔥 Bắt đầu minigame sau khi cắn câu
     const gameplay = this.node.parent.getComponent(GamePlayMgr);
@@ -323,6 +324,8 @@ export default class FishController extends cc.Component {
       ske.defaultAnimation = "swim";
       ske.setAnimation(0, "swim", true);
 
+      fish.children[1].active = false;
+
       // Random vị trí trong vùng area
       const x = minX + Math.random() * (maxX - minX);
       const y =
@@ -337,19 +340,19 @@ export default class FishController extends cc.Component {
       behaviour.area = area;
     switch (area) {
       case Area.Near:
-        behaviour.roamArea = cc.rect(-1500, 0, 1000, 500);
+        behaviour.roamArea = cc.rect(-1500, -500, 1000, 1000);
         break;
         case Area.MEDIUM:
-        behaviour.roamArea = cc.rect(-500, 0, 1000, 500);
+        behaviour.roamArea = cc.rect(-500, -500, 1000, 1000);
         break;
         case Area.FAR:
-        behaviour.roamArea = cc.rect(500, 0, 1000, 500);
+        behaviour.roamArea = cc.rect(500, -500, 1000, 1000);
         break;
         case Area.FARTHEST:
-        behaviour.roamArea = cc.rect(1500, 0, 1000, 500);
+        behaviour.roamArea = cc.rect(1500, -500, 1000, 1000);
         break;
       default:
-        behaviour.roamArea = cc.rect(-1500, 0, 1000, 500);
+        behaviour.roamArea = cc.rect(-1500, -500, 1000, 1000);
         break;
     }
 

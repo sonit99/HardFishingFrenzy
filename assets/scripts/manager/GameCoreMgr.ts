@@ -1,4 +1,6 @@
 import { DataManager } from "../../scripts/manager/DataMgr";
+import LoadingLayer from "../modules/loadingLayer";
+import UICtrl from "../modules/UICtrl";
 import { LanguageManager } from "./LanguageMgr";
 
 const { ccclass, property } = cc._decorator;
@@ -7,8 +9,8 @@ const { ccclass, property } = cc._decorator;
 export default class GameCoreManager extends cc.Component {
   public static instance: GameCoreManager = null;
 
-  // @property(cc.Node)
-  // mainLoadingLayer: LoadingLayer = null;
+  @property(cc.Node)
+  mainLoadingLayer: cc.Node = null;
 
   private _nGamePlay: cc.Node = null;
   private _nLobby: cc.Node = null;
@@ -28,11 +30,15 @@ export default class GameCoreManager extends cc.Component {
   }
 
   async start(): Promise<void> {
+    this.initBGNode();
+    this.initCameraNode();
+    cc.log(this._nCamera.getSiblingIndex());
+
     await DataManager.instance.loadAll();
     cc.resources.preloadDir(
       "prefabs",
       (finished: number, total: number, item: any) => {
-        // this.loadProgressCb(finished, total, item);
+        this.loadProgressCb(finished, total, item);
       },
       (err, assets) => {
         if (err) {
@@ -40,14 +46,18 @@ export default class GameCoreManager extends cc.Component {
           return;
         }
         console.log("Load xong toàn bộ:", assets.length);
-        this.initBGNode();
         this.initGamePlayNode();
         this.initLobbyNode();
-        this.initCameraNode();
         this.scheduleOnce(() => {
           this.node.sortAllChildren();
+          cc.log(this._nGamePlay.getSiblingIndex());
+          cc.log(this._nLobby.getSiblingIndex());
           cc.log(this._nCamera.getSiblingIndex());
-          this._nBG.active = true;
+
+          this.mainLoadingLayer.active = false;
+          this._nBG.children[2].children[0].active = true;
+          this._nBG.children[2].children[1].active = true;
+          UICtrl.instance.nInfo.active = true;
           this._nLobby.active = true;
         }, 0.1);
       }
@@ -57,7 +67,10 @@ export default class GameCoreManager extends cc.Component {
   initBGNode() {
     this._nBG = cc.find("BG", this.node);
     this._nBG.setSiblingIndex(0);
-    this._nBG.active = false;
+    this._nBG.active = true;
+    this._nBG.children[0].active = false;
+    this._nBG.children[1].active = false;
+    this._nBG.children[2].active = true;
   }
 
   initGamePlayNode() {
@@ -83,15 +96,16 @@ export default class GameCoreManager extends cc.Component {
   initCameraNode() {
     this._nCamera = cc.find("Main Camera", this.node);
     this._nCamera.setSiblingIndex(10);
+    UICtrl.instance.nInfo.active = true;
   }
 
   /////////////////////////////////////////////////////////////////////////////////
 
-  // loadProgressCb(completedCount: number, totalCount: number, item: any): void {
-  //   this.mainLoadingLayer
-  //     .getComponent(LoadingLayer)
-  //     .changeProgress(completedCount / totalCount);
-  // }
+  loadProgressCb(completedCount: number, totalCount: number, item: any): void {
+    this.mainLoadingLayer
+      .getComponent(LoadingLayer)
+      .changeProgress(completedCount / totalCount);
+  }
 
   activateGamePlay() {
     this._nBG.children[2].active = false; // disable lobby bg
@@ -101,14 +115,6 @@ export default class GameCoreManager extends cc.Component {
     this._nBG.children[1].getComponent(cc.Widget).updateAlignment();
     this._nLobby.active = false;
     this._nGamePlay.active = true;
-  }
-
-  lobbyBgEvent(callFunc: Function) {
-    this._nBG.children[2].on(
-      cc.Node.EventType.TOUCH_START,
-      callFunc,
-      this._nBG
-    );
   }
 
   getCameraPos(): cc.Vec2 {

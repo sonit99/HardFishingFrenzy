@@ -29,6 +29,12 @@ export default class RopeRenderer extends cc.Component {
     this.isFlying = flying;
   }
 
+  private isTight: boolean = false;
+
+  setTightState(bool: boolean){
+    this.isTight = bool;
+  }
+
   private gfx: cc.Graphics = null;
   private prevHookPos: cc.Vec2 = cc.v2();
   private currentPoints: cc.Vec2[] = [];
@@ -91,6 +97,10 @@ export default class RopeRenderer extends cc.Component {
       else {
         offsetY = -sag * 1.3 * curve; // cong hướng xuống
         // cc.log("💧 Rũ dây:", offsetY);
+      }
+
+      if (this.isTight) {
+        offsetY = 0 ;
       }
 
       // Khi kéo hook lên, giảm độ cong cho thẳng dần

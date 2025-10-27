@@ -86,7 +86,7 @@ export default class PopUp extends cc.Component {
 
     private onSell() {
         cc.log("💰 Fish sold!");
-        SoundUtil.instance.playSFX(SFX.Sell);
+        SoundUtil.instance.playSFX(SFX.Sell, false, 1, 0.2);
         UICtrl.instance.updateCoin(parseFloat(this.sellPrice.string.slice(1)));
         this.closePopup();
     }

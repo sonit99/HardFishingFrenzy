@@ -1,9 +1,12 @@
 
-const {ccclass, property} = cc._decorator;
+const { ccclass, property } = cc._decorator;
 
 @ccclass
 export default class UICtrl extends cc.Component {
     public static instance: UICtrl = null;
+
+    @property(cc.Node)
+    nInfo: cc.Node = null;
 
     @property(cc.Label)
     lblSashimi: cc.Label = null;
@@ -13,7 +16,7 @@ export default class UICtrl extends cc.Component {
 
     @property(cc.Node)
     powerBar: cc.Node = null;
-    
+
     private _sashimi: number = 250;
 
     getSashimi(): number {
@@ -40,11 +43,17 @@ export default class UICtrl extends cc.Component {
 
     // LIFE-CYCLE CALLBACKS:
 
-    onLoad () {
+    onLoad() {
         UICtrl.instance = this;
         this.updateLabels();
+
     }
-    
+
+    protected start(): void {
+        this.nInfo.active = false;
+        this.powerBar.active = false;
+    }
+
 
     updateLabels() {
         this.lblSashimi.string = this._sashimi.toString();
@@ -57,5 +66,9 @@ export default class UICtrl extends cc.Component {
 
     updatePowerBarProgress(progress: number = 0) {
         this.powerBar.getComponent(cc.ProgressBar).progress = progress;
+    }
+
+    updatePBColor(c: cc.Color){
+        this.powerBar.children[0].color = c;
     }
 }
