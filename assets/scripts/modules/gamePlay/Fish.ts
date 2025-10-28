@@ -1,3 +1,6 @@
+import Common from "../../utils/Common";
+import { FishInfo } from "./FishCtrl";
+
 const { ccclass, property } = cc._decorator;
 
 export enum FishRarity {
@@ -26,91 +29,108 @@ export enum FishName {
 
 export const FishStats = {
   [FishName.Atlantic_Mackerel]: {
-    id: 1,
+    id: 0,
     length: 30,
     value: 25,
     rarity: FishRarity.Common,
     call: FishName.Atlantic_Mackerel,
+    posSpine: { x: 45, y: 1 },
   },
   [FishName.Neon_Tetra]: {
-    id: 2,
+    id: 1,
     length: 6.5,
     value: 15,
     rarity: FishRarity.Common,
     call: FishName.Neon_Tetra,
+    posSpine: { x: 34, y: 0 },
   },
   [FishName.Swordfish]: {
-    id: 3,
+    id: 2,
     length: 90,
     value: 50,
     rarity: FishRarity.Uncommon,
     call: FishName.Swordfish,
+    posSpine: { x: 45, y: 8.5 },
   },
   [FishName.Leafy_Sea_Dragon]: {
-    id: 4,
+    id: 3,
     length: 35,
     value: 30,
     rarity: FishRarity.Uncommon,
     call: FishName.Leafy_Sea_Dragon,
+    posSpine: { x: 32, y: -22 },
   },
   [FishName.Ocean_Sunfish]: {
-    id: 5,
+    id: 4,
     length: 300,
     value: 200,
     rarity: FishRarity.Rare,
     call: FishName.Ocean_Sunfish,
+    posSpine: { x: 55, y: -5 },
   },
   [FishName.Great_Barracuda]: {
-    id: 6,
+    id: 5,
     length: 150,
     value: 100,
     rarity: FishRarity.Rare,
     call: FishName.Great_Barracuda,
+    posSpine: { x: 57, y: 0 },
   },
   [FishName.Bermuda_Moonfish]: {
-    id: 7,
+    id: 6,
     length: 330,
     value: 400,
     rarity: FishRarity.Epic,
     call: FishName.Bermuda_Moonfish,
+    posSpine: { x: 57, y: -7 },
   },
   // [FishName.Shadowfin_Marlin]: { id: 8, length: 340, value: 500, rarity: FishRarity.Epic, call: FishName.Shadowfin_Marlin },
   [FishName.Crystal_Seadragon]: {
-    id: 9,
+    id: 7,
     length: 45,
     value: 120,
     rarity: FishRarity.Epic,
     call: FishName.Crystal_Seadragon,
+    posSpine: { x: 25, y: -17 },
   },
   [FishName.Lionfish]: {
-    id: 10,
+    id: 8,
     length: 50,
     value: 200,
     rarity: FishRarity.Epic,
     call: FishName.Lionfish,
+    posSpine: { x: 84, y: 1 },
   },
   [FishName.Abyssal_Leviathan]: {
-    id: 11,
+    id: 9,
     length: 3350,
     value: 800,
     rarity: FishRarity.Legend,
     call: FishName.Abyssal_Leviathan,
+    posSpine: { x: 170, y: -20 },
   },
   [FishName.Ocean_Seraph]: {
-    id: 12,
+    id: 10,
     length: 38,
     value: 400,
     rarity: FishRarity.Legend,
     call: FishName.Ocean_Seraph,
+    posSpine: { x: 38, y: 3 },
   },
   [FishName.Voidfin_Levi]: {
-    id: 13,
+    id: 11,
     length: 1400,
     value: 1000,
     rarity: FishRarity.Legend,
     call: FishName.Voidfin_Levi,
+    posSpine: { x: 104, y: 22 },
   },
 };
+
+export enum FishAnim {
+  SWIM = "swimming",
+  CATCH = "catched"
+}
 
 export enum Area {
   Near = 0,
@@ -119,16 +139,29 @@ export enum Area {
   FARTHEST = 3,
 }
 
+export const RareBaitRate = {
+  [FishRarity.Common]: 100,
+  [FishRarity.Uncommon]: 75,
+  [FishRarity.Rare]: 50,
+  [FishRarity.Epic]: 25,
+  [FishRarity.Legend]: 10,
+}
+
 export interface IFishStats {
   id: number;
   length: number;
   value: number;
   rarity: FishRarity;
   call: string;
+  posSpine: { x: number, y: number },
+  posBubble: { x: number, y: number },
 }
 
 @ccclass
 export default class Fish extends cc.Component {
+  @property(sp.SkeletonData)
+  listSkeData: sp.SkeletonData[] = [];
+
   minSpeed = 100;
   maxSpeed = 250;
   speed = 200;
@@ -142,6 +175,7 @@ export default class Fish extends cc.Component {
   private spawnRangeY: number = 1075;
 
   isHooked: boolean = false;
+  goingForHook: boolean = false;
 
   stats: IFishStats | null = null;
 
@@ -151,10 +185,16 @@ export default class Fish extends cc.Component {
 
   init(randomName: string, stats: IFishStats, area: Area) {
     let ske = this.node.children[0].getComponent(sp.Skeleton);
-    ske.defaultSkin = randomName;
-    ske.setSkin(randomName);
-    ske.defaultAnimation = "swim";
-    ske.setAnimation(0, "swim", true);
+    ske.skeletonData = this.listSkeData[stats.id];
+    // ske.defaultSkin = randomName;
+    // ske.setSkin(randomName);
+    ske.defaultAnimation = FishAnim.SWIM;
+    ske.setAnimation(0, FishAnim.SWIM, true);
+
+    this.node.children[0].setPosition(stats.posSpine.x, stats.posSpine.y);
+    this.node.children[1].setPosition(stats.posSpine.x * 2, 0);
+
+    this.node.children[1].active = true;
 
     this.stats = stats;
     this.area = area;
@@ -202,10 +242,10 @@ export default class Fish extends cc.Component {
         break;
     }
 
-    this.node.children[1].active = false;
   }
 
   update(dt: number) {
+
     if (this.isHooked) {
       return;
     }
@@ -213,8 +253,18 @@ export default class Fish extends cc.Component {
     const dist = dir.mag();
 
     // Nếu đến gần mục tiêu thì chọn điểm mới
-    if (dist < 10) {
+    if (dist < 10 && !this.goingForHook) {
       this.pickNewTarget();
+      return;
+    }
+
+    if (dist === 0 && this.goingForHook) {
+      this.isHooked = true;
+      let node = this.node;
+      let stats = this.stats;
+      let area = this.area;
+      let fishInfo: FishInfo = {node, stats, area}
+      this.node.emit("FishBitten", fishInfo);
       return;
     }
 
@@ -263,5 +313,27 @@ export default class Fish extends cc.Component {
 
     // 🎯 Random lại tốc độ mỗi khi chọn target mới
     this.speed = this.minSpeed + Math.random() * (this.maxSpeed - this.minSpeed);
+  }
+
+  setNewTarget(pos: cc.Vec2) {
+    this.targetPos = pos;
+  }
+
+  findHook(hookPos: cc.Vec2) {
+    let minDist = 500;
+    const d = this.node.getPosition().sub(hookPos).mag();
+    if (d < minDist) {
+      this.tryHook(hookPos);
+    }
+  }
+
+  tryHook(hookPos: cc.Vec2) {
+    let rand = Common.randomInt(1, 100);
+    if (rand <= RareBaitRate[this.stats.rarity]) {
+      this.setNewTarget(hookPos);
+      this.goingForHook = true;
+    } else {
+      this.pickNewTarget();
+    }
   }
 }

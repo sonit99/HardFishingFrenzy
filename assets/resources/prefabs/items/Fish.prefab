@@ -107,8 +107,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 339,
-      "height": 567
+      "width": 184,
+      "height": 67.54
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -119,8 +119,8 @@
       "__type__": "TypedArray",
       "ctor": "Float64Array",
       "array": [
-        113.935,
-        3,
+        45,
+        1,
         0,
         0,
         0,
@@ -158,8 +158,8 @@
       }
     ],
     "paused": false,
-    "defaultSkin": "Abyssal Leviathan",
-    "defaultAnimation": "catch",
+    "defaultSkin": "default",
+    "defaultAnimation": "",
     "_preCacheMode": 0,
     "_cacheMode": 0,
     "loop": true,
@@ -176,7 +176,7 @@
     "_playTimes": 0,
     "_isAniComplete": true,
     "_N$skeletonData": {
-      "__uuid__": "a75fd364-c2bd-4809-a28e-0227527091cf"
+      "__uuid__": "af580e1a-3a86-490f-b1eb-f04e7afe387b"
     },
     "_N$_defaultCacheMode": 0,
     "_N$debugSlots": false,
@@ -236,8 +236,8 @@
       "__type__": "TypedArray",
       "ctor": "Float64Array",
       "array": [
-        66.393,
-        0,
+        69,
+        2.682,
         0,
         0,
         0,
@@ -322,6 +322,44 @@
       "__id__": 1
     },
     "_enabled": true,
+    "listSkeData": [
+      {
+        "__uuid__": "af580e1a-3a86-490f-b1eb-f04e7afe387b"
+      },
+      {
+        "__uuid__": "66f93140-f9ee-4273-a58d-05e35f24e629"
+      },
+      {
+        "__uuid__": "19caa270-8ba1-4943-949f-8d815920e696"
+      },
+      {
+        "__uuid__": "7804e8a6-7045-4ee6-b78b-3ec67be9fbc8"
+      },
+      {
+        "__uuid__": "bbba5568-a2cb-44eb-9ba5-bea372fef0a7"
+      },
+      {
+        "__uuid__": "69a32ac5-6eca-4f3e-a586-3aa0c1139ac6"
+      },
+      {
+        "__uuid__": "da2751b2-d318-4f85-bc38-3c520f2b734c"
+      },
+      {
+        "__uuid__": "5a59e1c9-8d9b-4d77-8a06-e8c9454669f6"
+      },
+      {
+        "__uuid__": "59f9d899-2fcc-4931-b16d-aced3c28035f"
+      },
+      {
+        "__uuid__": "2769888b-e20f-45f1-872c-481de329d5bd"
+      },
+      {
+        "__uuid__": "9956760c-03c6-40cf-bb11-91204fa39773"
+      },
+      {
+        "__uuid__": "c9bae414-2df8-425e-8086-6bc95f905ef5"
+      }
+    ],
     "_id": ""
   },
   {

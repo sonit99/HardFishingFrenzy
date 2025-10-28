@@ -1,9 +1,10 @@
+import { prototype } from "events";
 import { DataManager } from "../../manager/DataMgr";
 import GameCoreManager from "../../manager/GameCoreMgr";
 import SoundUtil, { BGM, SFX } from "../../utils/SoundUtil";
 import FlyingLabel, { Result } from "../FlyingLbl";
 import UICtrl from "../UICtrl";
-import Fish from "./Fish";
+import Fish, { FishAnim } from "./Fish";
 import FishCtrl, { FishInfo } from "./FishCtrl";
 import MinigameController from "./MinigameController";
 import PopUp from "./PopUp";
@@ -40,6 +41,9 @@ export default class GamePlayMgr extends cc.Component {
   @property(sp.Skeleton)
   characterSpine: sp.Skeleton = null;
 
+  @property(cc.Node)
+  waterSplash: cc.Node = null;
+
   private maxPower: number = 300;
   private gravity: number = -600;
   private isCharging: boolean = false;
@@ -70,6 +74,7 @@ export default class GamePlayMgr extends cc.Component {
   }
 
   start() {
+    this.popup.active = false;
     this.node.getChildByName("Player").active = true;
     this.startSounds();
     this.characterSpine.setAnimation(0, "stand", true);
@@ -217,6 +222,13 @@ export default class GamePlayMgr extends cc.Component {
     }
 
     this.hookVelocity = cc.v2(0, 0);
+
+    this.waterSplash.active = true;
+    this.waterSplash.x = this.hook.x;
+    this.waterSplash.getComponent(sp.Skeleton).setAnimation(0, "animation", false);
+    this.waterSplash.getComponent(sp.Skeleton).setCompleteListener(() => {
+      this.waterSplash.active = false;
+    });
 
     // ✅ Tính tâm là tip cần câu (local space)
     const rodTipWorld = this.getRodTipWorldPos();
@@ -399,7 +411,7 @@ export default class GamePlayMgr extends cc.Component {
           this.characterSpine.setAnimation(0, "stand", true);
           // this.characterSpine.setAnimation(0, "celebrate", false);
           this.hook.angle = 0;
-          if(this.hookedFish.scaleX === 1) {
+          if (this.hookedFish.scaleX === 1) {
             this.hookedFish.angle = -90;
           } else {
             this.hookedFish.angle = 90;
@@ -483,7 +495,7 @@ export default class GamePlayMgr extends cc.Component {
       this.hookedFish.parent = this.waterArea;
       this.hookedFish.children[0]
         .getComponent(sp.Skeleton)
-        .setAnimation(0, "swim", true);
+        .setAnimation(0, FishAnim.SWIM, true);
       this.hookedFish.getComponent(Fish).pickNewTarget();
       this.hookedFish.getComponent(Fish).isHooked = false;
 
@@ -502,13 +514,13 @@ export default class GamePlayMgr extends cc.Component {
     });
   }
 
-  startSounds(){
+  startSounds() {
     SoundUtil.instance.playBGM(BGM.AtlantisOcean);
     SoundUtil.instance.playSFX(SFX.BigWave, true, 0.4);
-    this.schedule(()=>{
+    this.schedule(() => {
       SoundUtil.instance.playSFX(SFX.RoaringWind, false, 0.8);
     }, 7, cc.macro.REPEAT_FOREVER);
-    this.schedule(()=>{
+    this.schedule(() => {
       SoundUtil.instance.playSFX(SFX.Whale, false, 0.8);
     }, 15, cc.macro.REPEAT_FOREVER);
     SoundUtil.instance.playSFX(SFX.Thunder, true, 0.8);

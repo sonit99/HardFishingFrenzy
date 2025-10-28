@@ -1,6 +1,6 @@
 import { DataManager } from "../../manager/DataMgr";
 import SoundUtil, { SFX } from "../../utils/SoundUtil";
-import Fish, { Area, FishRarity, FishStats, IFishStats } from "./Fish";
+import Fish, { Area, FishAnim, FishRarity, FishStats, IFishStats } from "./Fish";
 import GamePlayMgr from "./GamePlayMgr";
 
 const { ccclass } = cc._decorator;
@@ -56,6 +56,7 @@ export default class FishController extends cc.Component {
         DataManager.instance.getPrefabs("Fish").then((prefab: cc.Prefab) => {
           this.fishPrefab = prefab;
           this.spawnInitialFish();
+          this.node.on("FishBitten", this.onFishBite);
         });
       } catch (err) {
         cc.error("Failed to load fish prefab:", err);
@@ -83,8 +84,7 @@ export default class FishController extends cc.Component {
   }
 
   onHookInWater(hook: cc.Node) {
-    let nearest: FishInfo = null;
-    let minDist = Infinity;
+    let nearest: FishInfo[] = [];
 
     // === 1️⃣ Lấy vị trí tip hook trong world space
     const tipWorld = hook.parent.convertToWorldSpaceAR(hook.getPosition());
@@ -93,59 +93,53 @@ export default class FishController extends cc.Component {
     const tipInWater = this.node.convertToNodeSpaceAR(tipWorld);
 
     for (const f of this.fishes) {
-      const d = f.node.getPosition().sub(tipInWater).mag();
-      if (d < minDist) {
-        minDist = d;
-        nearest = f;
-      }
+      f.node.getComponent(Fish).findHook(tipInWater);
     }
-    cc.log(`🎯 Nearest fish: ${nearest.stats.call}, tipInWater: ${tipInWater}`);
-    if (!nearest) return;
 
-    // stop swimming animation and other actions
-    this.fishes = this.fishes.filter((f) => f.node !== nearest.node);
-    nearest.node.stopAllActions();
-    let fishWorldPos = nearest.node.parent.convertToWorldSpaceAR(
-      nearest.node.position
-    );
-    let fishLocalToHook = hook.convertToNodeSpaceAR(fishWorldPos);
-    nearest.node.parent = hook;
-    nearest.node.setPosition(fishLocalToHook);
-    nearest.node.angle = hook.angle;
-    nearest.node.scaleX = -nearest.node.scaleX;
+    // // stop swimming animation and other actions
+    // this.fishes = this.fishes.filter((f) => f.node !== nearest.node);
+    // nearest.node.stopAllActions();
+    // let fishWorldPos = nearest.node.parent.convertToWorldSpaceAR(
+    //   nearest.node.position
+    // );
+    // let fishLocalToHook = hook.convertToNodeSpaceAR(fishWorldPos);
+    // nearest.node.parent = hook;
+    // nearest.node.setPosition(fishLocalToHook);
+    // nearest.node.angle = hook.angle;
+    // nearest.node.scaleX = -nearest.node.scaleX;
 
-    let tipPos = cc.v2(0, -hook.height + 5);
-    cc.log(nearest.node.x < tipPos.x);
-    if (
-      (nearest.node.x < tipPos.x && nearest.node.scaleX > 0) ||
-      (nearest.node.x > tipPos.x && nearest.node.scaleX < 0)
-    ) {
-      nearest.node.scaleX = -nearest.node.scaleX;
-    }
-    nearest.node.getComponent(Fish).isHooked = true;
-    const swim = cc.moveTo(1, cc.v2(0, -30)).easing(cc.easeCubicActionInOut());
-    nearest.node.runAction(swim);
+    // let tipPos = cc.v2(0, -hook.height + 5);
+    // cc.log(nearest.node.x < tipPos.x);
+    // if (
+    //   (nearest.node.x < tipPos.x && nearest.node.scaleX > 0) ||
+    //   (nearest.node.x > tipPos.x && nearest.node.scaleX < 0)
+    // ) {
+    //   nearest.node.scaleX = -nearest.node.scaleX;
+    // }
+    // nearest.node.getComponent(Fish).isHooked = true;
+    // const swim = cc.moveTo(1, cc.v2(0, -30)).easing(cc.easeCubicActionInOut());
+    // nearest.node.runAction(swim);
 
-    this.scheduleOnce(() => {
-      this.onFishBite(nearest);
-      hook.stopAllActions();
-    }, 1);
+    // this.scheduleOnce(() => {
+    //   this.onFishBite(nearest);
+    //   hook.stopAllActions();
+    // }, 1);
   }
 
-  onFishBite(fish: FishInfo) {
-    this.node.emit("FishBitten", fish);
+  onFishBite(fishInfo: FishInfo) {
+    // this.node.emit("FishBitten", fish);
     SoundUtil.instance.playSFX(SFX.FishBite);
     SoundUtil.instance.playSFX(SFX.FishFlounder);
 
-    fish.node.children[0]
+    fishInfo.node.children[0]
       .getComponent(sp.Skeleton)
-      .setAnimation(0, "catch", true);
-      fish.node.children[1].active = true;
+      .setAnimation(0, FishAnim.CATCH, true);
+      fishInfo.node.children[1].active = true;
 
     // 🔥 Bắt đầu minigame sau khi cắn câu
     const gameplay = this.node.parent.getComponent(GamePlayMgr);
     if (gameplay) {
-      gameplay.startMiniGame(fish);
+      gameplay.startMiniGame(fishInfo);
     }
   }
 

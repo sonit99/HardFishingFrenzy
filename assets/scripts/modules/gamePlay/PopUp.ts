@@ -53,7 +53,7 @@ export default class PopUp extends cc.Component {
     }
 
     // ======================================
-    public setFishInfo(name: string, length: number, price: number, rarity: FishRarity = FishRarity.Common, id: number = 1) {
+    public setFishInfo(name: string, length: number, price: number, rarity: FishRarity = FishRarity.Common, id: number = 0) {
         this.fishName.string = name;
         this.fishLength.string = `${length.toFixed(2)} CM`;
         this.sellPrice.string = `x${price.toFixed()}`;
@@ -75,7 +75,7 @@ export default class PopUp extends cc.Component {
                 break;
         }
 
-        this.fishSpr.spriteFrame = this.listFishSpr[id - 1];
+        this.fishSpr.spriteFrame = this.listFishSpr[id];
     }
 
     private onClose() {
