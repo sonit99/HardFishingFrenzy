@@ -84,57 +84,20 @@ export default class FishController extends cc.Component {
   }
 
   onHookInWater(hook: cc.Node) {
-    let nearest: FishInfo[] = [];
-
-    // === 1️⃣ Lấy vị trí tip hook trong world space
-    const tipWorld = hook.parent.convertToWorldSpaceAR(hook.getPosition());
-
-    // === 2️⃣ Chuyển sang local của WaterArea (node chứa FishCtrl)
-    const tipInWater = this.node.convertToNodeSpaceAR(tipWorld);
-
     for (const f of this.fishes) {
-      f.node.getComponent(Fish).findHook(tipInWater);
+      f.node.getComponent(Fish).findHook(hook);
     }
-
-    // // stop swimming animation and other actions
-    // this.fishes = this.fishes.filter((f) => f.node !== nearest.node);
-    // nearest.node.stopAllActions();
-    // let fishWorldPos = nearest.node.parent.convertToWorldSpaceAR(
-    //   nearest.node.position
-    // );
-    // let fishLocalToHook = hook.convertToNodeSpaceAR(fishWorldPos);
-    // nearest.node.parent = hook;
-    // nearest.node.setPosition(fishLocalToHook);
-    // nearest.node.angle = hook.angle;
-    // nearest.node.scaleX = -nearest.node.scaleX;
-
-    // let tipPos = cc.v2(0, -hook.height + 5);
-    // cc.log(nearest.node.x < tipPos.x);
-    // if (
-    //   (nearest.node.x < tipPos.x && nearest.node.scaleX > 0) ||
-    //   (nearest.node.x > tipPos.x && nearest.node.scaleX < 0)
-    // ) {
-    //   nearest.node.scaleX = -nearest.node.scaleX;
-    // }
-    // nearest.node.getComponent(Fish).isHooked = true;
-    // const swim = cc.moveTo(1, cc.v2(0, -30)).easing(cc.easeCubicActionInOut());
-    // nearest.node.runAction(swim);
-
-    // this.scheduleOnce(() => {
-    //   this.onFishBite(nearest);
-    //   hook.stopAllActions();
-    // }, 1);
   }
 
   onFishBite(fishInfo: FishInfo) {
-    // this.node.emit("FishBitten", fish);
+    cc.log("onFishBite");
     SoundUtil.instance.playSFX(SFX.FishBite);
     SoundUtil.instance.playSFX(SFX.FishFlounder);
 
     fishInfo.node.children[0]
       .getComponent(sp.Skeleton)
       .setAnimation(0, FishAnim.CATCH, true);
-      fishInfo.node.children[1].active = true;
+    fishInfo.node.children[1].active = true;
 
     // 🔥 Bắt đầu minigame sau khi cắn câu
     const gameplay = this.node.parent.getComponent(GamePlayMgr);
@@ -164,6 +127,28 @@ export default class FishController extends cc.Component {
     );
   }
 
+  private onOtherFishReact(bittenFish: FishInfo) {
+    for (const f of this.fishes) {
+      if (f.node === bittenFish.node) {
+        this.fishes = this.fishes.filter((f) => f.node !== bittenFish.node);
+        continue;
+      }; // skip the bitten fish
+      const fishComp = f.node.getComponent(Fish);
+      if (!fishComp) continue;
+
+      fishComp.goingForHook = false;
+
+      // 🛑 Stop any current actions or movement if needed
+      f.node.stopAllActions();
+
+      // 🎯 Force fish to change direction/target (panic)
+      fishComp.pickNewTarget();
+    }
+
+    cc.log("🐟 Other fish reacted to bite event!");
+  }
+
+
   spawnFishByArea(area: Area, count: number) {
     if (!this.fishPrefab) return;
 
@@ -178,12 +163,18 @@ export default class FishController extends cc.Component {
       const fish = cc.instantiate(this.fishPrefab);
       fish.parent = this.node;
 
-      fish.getComponent(Fish).init(randomName, stats, area);
+      fish.getComponent(Fish).init(stats, area);
 
       // Thêm vào danh sách
       this.fishes.push({ node: fish, stats, area });
-    }
+      // 🔥 Listen for bite event from this fish
+      fish.on("FishBitten", (bittenInfo: FishInfo) => {
+        this.onFishBite(bittenInfo);
 
+        // Tell all other fish to react
+        this.onOtherFishReact(bittenInfo);
+      });
+    }
     cc.log(`🐠 Spawned ${count} fishes in area ${Area[area]}`);
   }
 }

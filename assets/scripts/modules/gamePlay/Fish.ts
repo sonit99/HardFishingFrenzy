@@ -177,13 +177,15 @@ export default class Fish extends cc.Component {
   isHooked: boolean = false;
   goingForHook: boolean = false;
 
+  hookNode: cc.Node | null = null;
+
   stats: IFishStats | null = null;
 
   protected onLoad(): void {
     this.pickNewTarget();
   }
 
-  init(randomName: string, stats: IFishStats, area: Area) {
+  init(stats: IFishStats, area: Area) {
     let ske = this.node.children[0].getComponent(sp.Skeleton);
     ske.skeletonData = this.listSkeData[stats.id];
     // ske.defaultSkin = randomName;
@@ -242,6 +244,7 @@ export default class Fish extends cc.Component {
         break;
     }
 
+    this.pickNewTarget();
   }
 
   update(dt: number) {
@@ -249,22 +252,41 @@ export default class Fish extends cc.Component {
     if (this.isHooked) {
       return;
     }
+
+    // If going for hook and hookNode still exists, update targetPos each frame
+    if (this.goingForHook && this.hookNode) {
+      // Convert hook's world position into this node's parent space (same space fish uses)
+      const hookWorld = this.hookNode.parent.convertToWorldSpaceAR(this.hookNode.getPosition());
+      const hookLocal = this.node.parent.convertToNodeSpaceAR(hookWorld);
+      this.targetPos = hookLocal;
+    }
+
     const dir = this.targetPos.sub(this.node.getPosition());
     const dist = dir.mag();
+
+
+    if (dist < 5 && this.goingForHook) {
+      this.isHooked = true;
+      let node = this.node;
+      let stats = this.stats!;
+      let area = this.area;
+      let fishInfo: FishInfo = { node, stats, area }
+      this.hookNode.stopAllActions();
+      this.node.parent = this.hookNode;
+      this.node.setPosition(cc.v2(0, -15))
+      this.node.scaleX = -this.node.scaleX;
+      this.node.angle = this.hookNode.angle;
+      // if (this.node.scaleX = 1) {
+      // } else {
+      //   node.angle = 
+      // }
+      this.node.emit("FishBitten", fishInfo);
+      return;
+    }
 
     // Nếu đến gần mục tiêu thì chọn điểm mới
     if (dist < 10 && !this.goingForHook) {
       this.pickNewTarget();
-      return;
-    }
-
-    if (dist === 0 && this.goingForHook) {
-      this.isHooked = true;
-      let node = this.node;
-      let stats = this.stats;
-      let area = this.area;
-      let fishInfo: FishInfo = {node, stats, area}
-      this.node.emit("FishBitten", fishInfo);
       return;
     }
 
@@ -319,21 +341,36 @@ export default class Fish extends cc.Component {
     this.targetPos = pos;
   }
 
-  findHook(hookPos: cc.Vec2) {
-    let minDist = 500;
-    const d = this.node.getPosition().sub(hookPos).mag();
+  findHook(hook: cc.Node) {
+    cc.log("findHook")
+    // === 1️⃣ Lấy vị trí tip hook trong world space
+    const tipWorld = hook.parent.convertToWorldSpaceAR(hook.getPosition());
+
+    // === 2️⃣ Chuyển sang local của WaterArea (node chứa FishCtrl)
+    const tipInWater = this.node.convertToNodeSpaceAR(tipWorld);
+
+    let minDist = 800;
+    const d = this.node.getPosition().sub(tipInWater).mag();
+    cc.log("distance: ", d);
     if (d < minDist) {
-      this.tryHook(hookPos);
+      this.tryHook(hook);
     }
   }
 
-  tryHook(hookPos: cc.Vec2) {
+  tryHook(hook: cc.Node) {
     let rand = Common.randomInt(1, 100);
+    cc.log("rand", rand)
     if (rand <= RareBaitRate[this.stats.rarity]) {
-      this.setNewTarget(hookPos);
+      this.hookNode = hook;
       this.goingForHook = true;
     } else {
+      this.clearHookTarget();
       this.pickNewTarget();
     }
+  }
+
+  clearHookTarget() {
+    this.hookNode = null;
+    this.goingForHook = false;
   }
 }

@@ -1,4 +1,3 @@
-import { prototype } from "events";
 import { DataManager } from "../../manager/DataMgr";
 import GameCoreManager from "../../manager/GameCoreMgr";
 import SoundUtil, { BGM, SFX } from "../../utils/SoundUtil";
@@ -250,7 +249,7 @@ export default class GamePlayMgr extends cc.Component {
 
     this.scheduleOnce(() => {
       fishCtrl.onHookInWater(this.hook);
-    }, sinkTime / 2);
+    }, 1);
 
     this.schedule(
       () => {
