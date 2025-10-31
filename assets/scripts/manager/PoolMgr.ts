@@ -1,4 +1,4 @@
-import ObjectPool from "../modules/ObjectPool";
+import ObjectPool from "./ObjectPool";
 
 const { ccclass, property } = cc._decorator;
 

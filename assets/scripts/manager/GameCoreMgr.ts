@@ -30,6 +30,8 @@ export default class GameCoreManager extends cc.Component {
   }
 
   async start(): Promise<void> {
+    await DataManager.instance.loadAll();
+    
     this.initBGNode();
     this.initCameraNode();
     cc.log(this._nCamera.getSiblingIndex());

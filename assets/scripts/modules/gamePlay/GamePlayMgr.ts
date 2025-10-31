@@ -61,7 +61,6 @@ export default class GamePlayMgr extends cc.Component {
 
 
   async onLoad() {
-    await DataManager.instance.loadAll();
 
     UICtrl.instance.activeatePowerBar(false);
     this.angleNode.active = true;
